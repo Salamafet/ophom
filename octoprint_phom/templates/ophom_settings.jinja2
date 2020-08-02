@@ -1,0 +1,45 @@
+<h3>Ophom Settings</h3>
+
+Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff4b4b;">Not Linked</span>
+
+<div style="margin-bottom: 25px;"></div>
+
+<div id="ophom_bridgenotlinked">
+	<h4>Pairing to the Bridge</h4>
+	<p>Click on the button below to start searching for your Philips Hue Bridge</p>
+	<button id="ophom_searchbridgebutton" type="button" class="btn"><i class="fa fa-search"></i> Search my bridge</button>
+	<br /><br />
+	<span id="ophom_searchbridgestatus" style="display: none;"></span>
+</div>
+
+<script>
+	document.getElementById("ophom_searchbridgebutton").addEventListener('click', function() {
+		var search_button = this
+		search_button.innerHTML = '<i class="fa fa-search"></i> Searching...';
+		search_button.disabled = true;
+		document.getElementById("ophom_searchbridgestatus").style.display = "none";
+
+		fetch("https://discovery.meethue.com/").then(function(response) {
+			response.json().then(function(data) {
+				console.log(data);
+				if(data.length == 0)
+				{
+					search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
+					search_button.disabled = false;
+					document.getElementById("ophom_searchbridgestatus").style.display = "";
+					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='red'>Unable to find your Hue Bridge. Are you on the same network ?</font>";
+				}
+				else
+				{
+					search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
+					search_button.disabled = false;
+					document.getElementById("ophom_searchbridgestatus").style.display = "";
+					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='green'>Brige found (<i>"+ data[0].internalipaddress+"</i>) !</font>";
+
+					
+				}
+			});
+		});
+
+	});
+</script>
