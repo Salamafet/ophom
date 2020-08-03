@@ -19,7 +19,7 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 		search_button.disabled = true;
 		document.getElementById("ophom_searchbridgestatus").style.display = "none";
 
-		fetch("https://discovery.meethue.com/").then(function(response) {
+		fetch("http://localhost:5000/api/plugin/ophom?action=discover").then(function(response) {
 			response.json().then(function(data) {
 				console.log(data);
 				if(data.length == 0)

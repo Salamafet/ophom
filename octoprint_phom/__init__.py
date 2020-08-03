@@ -10,6 +10,7 @@ from __future__ import absolute_import
 # Take a look at the documentation on what other plugin mixins are available.
 
 import octoprint.plugin
+import flask
 
 class OphomPlugin(octoprint.plugin.SettingsPlugin,
                   octoprint.plugin.AssetPlugin,
@@ -52,6 +53,24 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			dict(type="navbar", custom_bindings=False),
 			dict(type="settings", custom_bindings=False)
 		]
+
+	### API ###
+	def get_api_commands(self):
+		return dict(
+			command1=[],
+			command2=['test_de_merde']
+		)
+
+	def on_api_command(self, command, data):
+		if command == "command1":
+			return flask.jsonify(reponse="pas de command")
+		elif command == "test_de_merde":
+			return flask.jsonify(reponse="va chier enculé")
+
+	def on_api_get(self, request):
+		option = request.args.get('action')
+		return flask.jsonify(reponse=option)
+
 	##~~ AssetPlugin mixin
 
 	def get_assets(self):
