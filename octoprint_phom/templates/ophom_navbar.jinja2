@@ -1,1 +1,10 @@
-<a href="https://en.wikipedia.org/wiki/Hello_world">Hello World!</a>
+<a id="navbar_show_settings" class="pull-right" title="{{ plugin_ophom_light_status }}">
+    
+	{% if plugin_ophom_light_status == 1 %}
+	<font color='#06c700'>
+	{% else %}
+	<font color='red'>
+	{% endif %}
+	<i class="fa fa-plug"></i>
+	</font>
+</a>

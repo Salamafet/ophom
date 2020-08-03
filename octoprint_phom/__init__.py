@@ -13,25 +13,45 @@ import octoprint.plugin
 
 class OphomPlugin(octoprint.plugin.SettingsPlugin,
                   octoprint.plugin.AssetPlugin,
-                  octoprint.plugin.TemplatePlugin):
+                  octoprint.plugin.TemplatePlugin,
+				  octoprint.plugin.StartupPlugin,
+				  octoprint.plugin.SimpleApiPlugin):
 
 	##~~ SettingsPlugin mixin
 
 	def get_settings_defaults(self):
 		return dict(
-			# put your plugin's default settings here
 			hue_token = None,
 			hue_ip = None,
-			hue_configured = False
+			hue_configured = False,
+			light_id = None,
+			auto_off = False,
+			auto_off_bed_temp = 60,
+			auto_off_nozzle_temp = 60,
+			light_status = 0
 		)
+
+	def on_after_startup(self):
+		self._logger.info("Light Status: %s" % self._settings.get(['light_status']))
+		#self._settings.set(['light_status'], 0)
+
 
 	def get_template_vars(self):
 		return dict(
 			hue_token=self._settings.get(["hue_token"]),
 			hue_ip=self._settings.get(["hue_ip"]),
-			hue_configured=self._settings.get(["hue_configured"])
-
+			hue_configured=self._settings.get(["hue_configured"]),
+			auto_off=self._settings.get(["auto_off"]),
+			auto_off_bed_temp=self._settings.get(["auto_off_bed_temp"]),
+			auto_off_nozzle_temp=self._settings.get(["auto_off_nozzle_temp"]),
+			light_status=self._settings.get(["light_status"])
 		)
+
+	def get_template_configs(self):
+		return [
+			dict(type="navbar", custom_bindings=False),
+			dict(type="settings", custom_bindings=False)
+		]
 	##~~ AssetPlugin mixin
 
 	def get_assets(self):
