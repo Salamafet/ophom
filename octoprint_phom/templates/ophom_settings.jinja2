@@ -10,16 +10,31 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 	<button id="ophom_searchbridgebutton" type="button" class="btn"><i class="fa fa-search"></i> Search my bridge</button>
 	<br /><br />
 	<span id="ophom_searchbridgestatus" style="display: none;"></span>
+	<br />
+	<div id="ophom_bridgefound" style="display: none;">
+		<p>Click on "Start Pairing" button below and push the pairing button on your Bridge</p>
+		<button id="ophom_pairingbridgebutton" class="btn"><i class="fa fa-link"></i> Start Pairing</button>
+		<span id="ophom_pairingtrycount"></span>
+		<br />
+		<div class="controls">
+			<!-- <input type="text" id="ophom_champtest" data-bind="value: settings.plugins.ophom.hue_token"/> -->
+		</div>
+		<!-- <img src="plugin/ophom/static/images/hue_pairing.png" / > -->
+	</div>
 </div>
 
 <script>
+
+	var bridge_ip_address = "";
+
 	document.getElementById("ophom_searchbridgebutton").addEventListener('click', function() {
 		var search_button = this
 		search_button.innerHTML = '<i class="fa fa-search"></i> Searching...';
 		search_button.disabled = true;
 		document.getElementById("ophom_searchbridgestatus").style.display = "none";
+		document.getElementById("ophom_bridgefound").style.display = "none";
 
-		fetch("http://localhost:5000/api/plugin/ophom?action=discover").then(function(response) {
+		fetch(API_BASEURL + "plugin/ophom?action=discover").then(function(response) {
 			response.json().then(function(data) {
 				console.log(data);
 				if(data.length == 0)
@@ -31,15 +46,45 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 				}
 				else
 				{
+					bridge_ip_address = data[0].internalipaddress;
 					search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
 					search_button.disabled = false;
 					document.getElementById("ophom_searchbridgestatus").style.display = "";
 					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='green'>Brige found (<i>"+ data[0].internalipaddress+"</i>) !</font>";
-
+					document.getElementById("ophom_bridgefound").style.display = "";
 					
 				}
 			});
 		});
 
+	});
+
+	document.getElementById("ophom_pairingbridgebutton").addEventListener('click', function() {
+		var pairing_bridge_button= document.getElementById("ophom_pairingbridgebutton");
+		pairing_bridge_button.innerHTML = '<i class="fa fa-link"></i> Pairing...';
+		pairing_bridge_button.disabled = true;
+		var pairing_try_count = 0;
+		var text_pairing_count = document.getElementById("ophom_pairingtrycount");
+		text_pairing_count.innerHTML = "Try count: " + pairing_try_count + "/30";
+		var interval_pairing = setInterval(function() {
+			pairing_try_count += 1;
+			text_pairing_count.innerHTML = "Try count: " + pairing_try_count + "/30";
+			fetch(API_BASEURL + "plugin/ophom?action=pairing", {
+				method: "POST",
+				body : JSON.stringify({command: "pairing", ip: bridge_ip_address}),
+				headers: { 'Content-Type': 'application/json'}
+			}).then(function(response) {
+				response.json().then(function(data) {
+					console.log(data);
+				});
+			});
+			if(pairing_try_count == 30)
+			{
+				clearInterval(interval_pairing);
+				pairing_bridge_button.innerHTML = '<i class="fa fa-link"></i> Start Pairing';
+				pairing_bridge_button.disabled = false;
+				text_pairing_count.innerHTML = "<font color='red'>Unable to pair</font>";
+			}
+		}, 1000);
 	});
 </script>

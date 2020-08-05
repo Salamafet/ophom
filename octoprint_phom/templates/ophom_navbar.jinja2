@@ -1,10 +1,37 @@
-<a id="navbar_show_settings" class="pull-right" title="{{ plugin_ophom_light_status }}">
-    
-	{% if plugin_ophom_light_status == 1 %}
-	<font color='#06c700'>
-	{% else %}
-	<font color='red'>
-	{% endif %}
+<a id="navbar_show_settings" class="pull-right">
+	<font id="ophom_plugbutton" color='#06c700'>
 	<i class="fa fa-plug"></i>
 	</font>
 </a>
+
+<script>
+	var plug_button = document.getElementById("ophom_plugbutton");
+	fetch(API_BASEURL + "plugin/ophom?action=isconfigured").then(function(response) {
+		response.json().then(function(data) {
+			if(data.reponse == false)
+			{
+				plug_button.style.color = "grey"
+				plug_button.addEventListener('click', function(){
+					alert("Ophom is not configured !\nPlease open settings and go in the \"Plugins -> Ophom\" section.");
+				})
+			}
+			else
+			{
+				var check_plug_status = setInterval(function() {
+					fetch(API_BASEURL + "plugin/ophom?action=checkplugstatus").then(function(response) {
+						response.json().then(function(data) {
+							if(data.reponse == 1)
+							{
+								plug_button.style.color = '#06c700';
+							}
+							else
+							{
+								plug_button.style.color = 'red';
+							}
+						})
+					});
+				},5000)
+			}
+		})
+	});
+</script>

@@ -11,6 +11,7 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 import flask
+import requests
 
 class OphomPlugin(octoprint.plugin.SettingsPlugin,
                   octoprint.plugin.AssetPlugin,
@@ -34,19 +35,19 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 
 	def on_after_startup(self):
 		self._logger.info("Light Status: %s" % self._settings.get(['light_status']))
-		#self._settings.set(['light_status'], 0)
+		#self._settings.set(['hue_token'], None)
 
 
-	def get_template_vars(self):
-		return dict(
-			hue_token=self._settings.get(["hue_token"]),
-			hue_ip=self._settings.get(["hue_ip"]),
-			hue_configured=self._settings.get(["hue_configured"]),
-			auto_off=self._settings.get(["auto_off"]),
-			auto_off_bed_temp=self._settings.get(["auto_off_bed_temp"]),
-			auto_off_nozzle_temp=self._settings.get(["auto_off_nozzle_temp"]),
-			light_status=self._settings.get(["light_status"])
-		)
+	# def get_template_vars(self):
+	# 	return dict(
+	# 		hue_token=self._settings.get(["hue_token"]),
+	# 		hue_ip=self._settings.get(["hue_ip"]),
+	# 		hue_configured=self._settings.get(["hue_configured"]),
+	# 		auto_off=self._settings.get(["auto_off"]),
+	# 		auto_off_bed_temp=self._settings.get(["auto_off_bed_temp"]),
+	# 		auto_off_nozzle_temp=self._settings.get(["auto_off_nozzle_temp"]),
+	# 		light_status=self._settings.get(["light_status"])
+	# 	)
 
 	def get_template_configs(self):
 		return [
@@ -58,18 +59,35 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 	def get_api_commands(self):
 		return dict(
 			command1=[],
-			command2=['test_de_merde']
+			pairing=['ip']
 		)
 
 	def on_api_command(self, command, data):
 		if command == "command1":
 			return flask.jsonify(reponse="pas de command")
-		elif command == "test_de_merde":
-			return flask.jsonify(reponse="va chier enculé")
+		elif command == "pairing":
+			ip = data['ip']
+			r = requests.post("http://{}/api".format(ip), json={"devicetype":"octoprint#ophom"})
+			if(list(r.json()[0].keys())[0] == "error"):
+				return flask.jsonify(reponse="error")
+			elif(list(r.json()[0].keys())[0] == "success"):
+				token = r.json()[0]['success']['username']
+				self._settings.set(['hue_token'], token)
+				return flask.jsonify(reponse="success")
 
+
+	# Requete API get
 	def on_api_get(self, request):
 		option = request.args.get('action')
-		return flask.jsonify(reponse=option)
+		if(option == "discover"):
+			r = requests.get("https://discovery.meethue.com/")
+			return flask.jsonify(r.json())
+		elif(option == "isconfigured"):
+			return flask.jsonify(reponse=self._settings.get(['hue_configured']))
+		elif(option == "checkplugstatus"):
+			return flask.jsonify(reponse=0)
+		else:
+			return flask.jsonify(error="Invalid command")
 
 	##~~ AssetPlugin mixin
 
@@ -79,7 +97,8 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		return dict(
 			js=["js/ophom.js"],
 			css=["css/ophom.css"],
-			less=["less/ophom.less"]
+			less=["less/ophom.less"],
+			hue_pairing=['images/hue_pairing.png']
 		)
 
 
