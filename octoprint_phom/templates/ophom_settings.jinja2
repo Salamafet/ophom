@@ -16,11 +16,15 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 		<button id="ophom_pairingbridgebutton" class="btn"><i class="fa fa-link"></i> Start Pairing</button>
 		<span id="ophom_pairingtrycount"></span>
 		<br />
-		<div class="controls">
-			<!-- <input type="text" id="ophom_champtest" data-bind="value: settings.plugins.ophom.hue_token"/> -->
-		</div>
-		<!-- <img src="plugin/ophom/static/images/hue_pairing.png" / > -->
+		<!-- <div class="controls">
+			<input type="text" id="ophom_champtest" data-bind="value: settings.plugins.ophom.hue_token"/>
+		</div> -->
+		<img src="plugin/ophom/static/images/hue_pairing.png" />
 	</div>
+</div>
+<div id="ophom_bridgenotconfigured" style="display: none;">
+	<h4>Configuring the Outlet</h4>
+	<span id="ophom_configuringstatus">Retrieving your Hue devices....</span>
 </div>
 
 <script>
@@ -52,11 +56,9 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 					document.getElementById("ophom_searchbridgestatus").style.display = "";
 					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='green'>Brige found (<i>"+ data[0].internalipaddress+"</i>) !</font>";
 					document.getElementById("ophom_bridgefound").style.display = "";
-					
 				}
 			});
 		});
-
 	});
 
 	document.getElementById("ophom_pairingbridgebutton").addEventListener('click', function() {
@@ -66,6 +68,7 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 		var pairing_try_count = 0;
 		var text_pairing_count = document.getElementById("ophom_pairingtrycount");
 		text_pairing_count.innerHTML = "Try count: " + pairing_try_count + "/30";
+		document.getElementById("ophom_searchbridgebutton").disabled = true;
 		var interval_pairing = setInterval(function() {
 			pairing_try_count += 1;
 			text_pairing_count.innerHTML = "Try count: " + pairing_try_count + "/30";
@@ -75,7 +78,12 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 				headers: { 'Content-Type': 'application/json'}
 			}).then(function(response) {
 				response.json().then(function(data) {
-					console.log(data);
+					console.info(data.reponse);
+					if(data.reponse == "success")
+					{
+						clearInterval(interval_pairing);
+						text_pairing_count.innerHTML = "<font color='green'>Succesfull Pairing !</font>";
+					}
 				});
 			});
 			if(pairing_try_count == 30)
@@ -83,7 +91,8 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 				clearInterval(interval_pairing);
 				pairing_bridge_button.innerHTML = '<i class="fa fa-link"></i> Start Pairing';
 				pairing_bridge_button.disabled = false;
-				text_pairing_count.innerHTML = "<font color='red'>Unable to pair</font>";
+				text_pairing_count.innerHTML = "<font color='red'>Unable to pair. Please try again</font>";
+				document.getElementById("ophom_searchbridgebutton").disabled = false;
 			}
 		}, 1000);
 	});
