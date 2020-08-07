@@ -1,9 +1,10 @@
 <h3>Ophom Settings</h3>
 
-Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff4b4b;">Not Linked</span>
+Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" style="background-color: #ff4b4b;">Not Linked</span>
 
 <div style="margin-bottom: 25px;"></div>
 
+ <!-- ###### BRIDGE PAIRING ###### -->
 <div id="ophom_bridgenotlinked">
 	<h4>Pairing to the Bridge</h4>
 	<p>Click on the button below to start searching for your Philips Hue Bridge</p>
@@ -22,14 +23,17 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 		<img src="plugin/ophom/static/images/hue_pairing.png" />
 	</div>
 </div>
+
+ <!-- ###### BRIDGE CONFIGURATION ###### -->
 <div id="ophom_bridgenotconfigured" style="display: none;">
-	<h4>Configuring the Outlet</h4>
+	<h4>Brdige Configuration</h4>
 	<span id="ophom_configuringstatus">Retrieving your Hue devices....</span>
 </div>
 
 <script>
 
 	var bridge_ip_address = "";
+	var general_status = document.getElementById("ophom_generalstatus");
 
 	document.getElementById("ophom_searchbridgebutton").addEventListener('click', function() {
 		var search_button = this
@@ -83,6 +87,7 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 					{
 						clearInterval(interval_pairing);
 						text_pairing_count.innerHTML = "<font color='green'>Succesfull Pairing !</font>";
+						bridgeConfiguration();
 					}
 				});
 			});
@@ -96,4 +101,12 @@ Hue Bridge Status: <span class="badge badge-danger" style="background-color: #ff
 			}
 		}, 1000);
 	});
+
+	function bridgeConfiguration()
+	{
+		general_status.innerHTML = "Linked but not Configured";
+		general_status.style.backgroundColor = "#ff8f4b";
+		document.getElementById("ophom_bridgenotlinked").style.display = "none";
+		document.getElementById("ophom_bridgenotconfigured").style.display = "";
+	}
 </script>

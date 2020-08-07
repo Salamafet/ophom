@@ -73,6 +73,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			elif(list(r.json()[0].keys())[0] == "success"):
 				token = r.json()[0]['success']['username']
 				self._settings.set(['hue_token'], token)
+				self._settings.set(['hue_ip'], token)
 				return flask.jsonify(reponse="success")
 
 
