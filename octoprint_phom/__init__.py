@@ -59,7 +59,8 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 	def get_api_commands(self):
 		return dict(
 			command1=[],
-			pairing=['ip']
+			pairing=['ip'],
+			configuration=['device_id']
 		)
 
 	def on_api_command(self, command, data):
@@ -73,8 +74,11 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			elif(list(r.json()[0].keys())[0] == "success"):
 				token = r.json()[0]['success']['username']
 				self._settings.set(['hue_token'], token)
-				self._settings.set(['hue_ip'], token)
+				self._settings.set(['hue_ip'], ip)
 				return flask.jsonify(reponse="success")
+		elif command == "configuration":
+			self._settings.set(['light_id'], data['device_id'])
+			return flask.jsonify(reponse="success")
 
 
 	# Requete API get
@@ -84,9 +88,35 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			r = requests.get("https://discovery.meethue.com/")
 			return flask.jsonify(r.json())
 		elif(option == "isconfigured"):
-			return flask.jsonify(reponse=self._settings.get(['hue_configured']))
+			token = self._settings.get(['hue_token'])
+			light = self._settings.get(['light_id'])
+			if(token == None and light == None):
+				return flask.jsonify(reponse=0)
+			elif(token != None and light == None):
+				return flask.jsonify(reponse=1)
+			elif(token != None and light != None):
+				return flask.jsonify(reponse=2)
 		elif(option == "checkplugstatus"):
-			return flask.jsonify(reponse=0)
+			r = requests.get("http://{}/api/{}/lights/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])))
+			if(r.json()['state']['on']):
+				return flask.jsonify(reponse=1)
+			else:
+				return flask.jsonify(reponse=0)
+		elif(option == "pluglist"):
+			r = requests.get("http://{}/api/{}/lights".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])))
+			plug_list = []
+			for device in r.json():
+				if(r.json()[device]['config']['archetype'] == "plug"):
+					plug_list.append([device, r.json()[device]['name']])
+			return flask.jsonify(plug_list)
+		elif(option == "toggle"):
+			r = requests.get("http://{}/api/{}/lights/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])))
+			if(r.json()['state']['on']):
+				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
+				return flask.jsonify(reponse=0)
+			else:
+				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": True})
+				return flask.jsonify(reponse=1)
 		else:
 			return flask.jsonify(error="Invalid command")
 

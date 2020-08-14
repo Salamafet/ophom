@@ -26,14 +26,42 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
  <!-- ###### BRIDGE CONFIGURATION ###### -->
 <div id="ophom_bridgenotconfigured" style="display: none;">
-	<h4>Brdige Configuration</h4>
+	<h4>Bridge Configuration</h4>
 	<span id="ophom_configuringstatus">Retrieving your Hue devices....</span>
+	<br />
+	<select id="ophom_plugselection" style="display: none;">
+		<option value="">Choose a plug...</option>
+	</select>
+	<br /><br />
+	<button id="ophom_validplugselection" class="btn"><i class="fa fa-save"></i> Save Configuration</button>
+</div>
+
+<!-- #### AUTO OFF CONFIGURATION ####-->
+<div id="ophom_autooffconfiguration" style="display: none;">
+	<h4>Auto Off Configuration</h4>
+	<label class="checkbox">
+		<input type="checkbox" value="">
+		Activate auto off when print is finish ?
+	</label>
 </div>
 
 <script>
 
 	var bridge_ip_address = "";
 	var general_status = document.getElementById("ophom_generalstatus");
+
+	// ## Vérification du statut actuel de la config
+	fetch(API_BASEURL + "plugin/ophom?action=isconfigured").then(function(response) {
+		response.json().then(function(data) {
+			if(data['reponse'] == 1)
+			{
+				bridgeConfiguration();
+			}
+			else if (data['reponse'] == 2) {
+				autOffConfiguration();
+			}
+		})
+	});
 
 	document.getElementById("ophom_searchbridgebutton").addEventListener('click', function() {
 		var search_button = this
@@ -76,7 +104,7 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		var interval_pairing = setInterval(function() {
 			pairing_try_count += 1;
 			text_pairing_count.innerHTML = "Try count: " + pairing_try_count + "/30";
-			fetch(API_BASEURL + "plugin/ophom?action=pairing", {
+			fetch(API_BASEURL + "plugin/ophom", {
 				method: "POST",
 				body : JSON.stringify({command: "pairing", ip: bridge_ip_address}),
 				headers: { 'Content-Type': 'application/json'}
@@ -108,5 +136,48 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		general_status.style.backgroundColor = "#ff8f4b";
 		document.getElementById("ophom_bridgenotlinked").style.display = "none";
 		document.getElementById("ophom_bridgenotconfigured").style.display = "";
+
+		fetch(API_BASEURL + "plugin/ophom?action=pluglist").then(function(response) {
+			response.json().then(function(data) {
+				console.log(data);
+				document.getElementById("ophom_configuringstatus").innerHTML = "Select a plug in the list bellow";
+				var list_plug = document.getElementById("ophom_plugselection");
+				data.forEach(element => {
+					var option = document.createElement("option");
+					option.text = element[1];
+					option.value = element[0];
+					list_plug.add(option);
+				});
+				list_plug.style.display = "";
+			})
+		})
+	}
+
+	document.getElementById("ophom_validplugselection").addEventListener('click', function() {
+		var light_id = document.getElementById("ophom_plugselection").value;
+		if(light_id != "")
+		{
+			fetch(API_BASEURL + "plugin/ophom", {
+					method: "POST",
+					body : JSON.stringify({command: "configuration", device_id: light_id}),
+					headers: { 'Content-Type': 'application/json'}
+				}).then(function(response) {
+					response.json().then(function(data) {
+						if(data.reponse == "success")
+						{
+							autOffConfiguration();
+						}
+					});
+				});
+		}
+	});
+
+	function autOffConfiguration()
+	{
+		general_status.innerHTML = "Linked and Configured";
+		general_status.style.backgroundColor = "rgb(6, 202, 27)";
+		document.getElementById("ophom_bridgenotlinked").style.display = "none";
+		document.getElementById("ophom_bridgenotconfigured").style.display = "none";
+		document.getElementById("ophom_autooffconfiguration").style.display = "";
 	}
 </script>
