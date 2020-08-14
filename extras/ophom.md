@@ -8,7 +8,7 @@ author: Stéphane Z.
 license: AGPLv3
 
 # TODO
-date: today's date in format YYYY-MM-DD, e.g. 2015-04-21
+date: 2020-08-14
 
 homepage: https://github.com/Salamafet/ophom
 source: https://github.com/Salamafet/ophom
@@ -21,11 +21,10 @@ archive: https://github.com/Salamafet/ophom/archive/master.zip
 
 # TODO
 tags:
-- a list
-- of tags
-- that apply
-- to your plugin
-- (take a look at the existing plugins for what makes sense here)
+- hue
+- outlet
+- auto off
+- power manage
 
 # TODO
 screenshots:
@@ -92,9 +91,10 @@ compatibility:
   # If your plugin only supports Python 2 (worst case, not recommended for newly developed plugins since Python 2
   # is EOL), leave at ">=2.7,<3"
   
-  python: ">=2.7,<3"
+  python: ">=2.7,<4"
 
 ---
 
-**TODO**: Longer description of your plugin, configuration examples etc. This part will be visible on the page at
-http://plugins.octoprint.org/plugin/ophom/
+Switch the Philips Hue socket on or off to which your printer is connected
+
+In the next update: Choose in m

@@ -1,6 +1,8 @@
 # Ophom
 
-**TODO:** Describe what your plugin does.
+Switch the Philips Hue socket on or off to which your printer is connected
+
+**Todo**: Auto off the printer when print is finish (bed and nozzle temparature set by user)
 
 ## Setup
 
@@ -9,9 +11,7 @@ or manually using this URL:
 
     https://github.com/Salamafet/ophom/archive/master.zip
 
-**TODO:** Describe how to install your plugin, if more needs to be done than just installing it via pip or through
-the plugin manager.
 
 ## Configuration
 
-**TODO:** Describe your plugin's configuration options (if any).
+After the installation go to the plugin configuration and follow the guide.
