@@ -38,14 +38,36 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 <!-- #### AUTO OFF CONFIGURATION ####-->
 <div id="ophom_autooffconfiguration" style="display: none;">
-	<h4>Auto Off Configuration</h4>
+	<h4>Configuration</h4>
+
 	<label class="checkbox" disabled>
-		<input type="checkbox" value="" disabled>
-		Activate auto off when print is finish ?
+		<input type="checkbox" value="" data-bind="checked: settings.plugins.ophom.auto_connect">
+		Try to connect to printer after power On the plug ?
 	</label>
 
-	<br /><br />
-	<h2><b><font color="red">Work in progress !</font></b></h2>
+	<br />
+
+	<label class="checkbox" disabled>
+		<input type="checkbox" value="" data-bind="checked: settings.plugins.ophom.auto_off">
+		Power Off the plug after print successfull finish ?
+	</label>
+	Minimum temperature required for automatic shutdown:<br /><br />
+	<div class="control-group disabled" data-bind="css: { disabled: !settings.plugins.ophom.auto_off }">
+		<div class="input-append">
+			<label class="control-label" for="nozzle">Nozzle:</label>
+			<input class="span2" id="nozzle" type="text" data-bind="value: settings.plugins.ophom.auto_off_nozzle_temp">
+			<span class="add-on">C°</span>
+		</div>
+
+		<div class="input-append">
+			<label class="control-label" for="bed">Bed:</label>
+			<input class="span2" id="bed" type="text" data-bind="value: settings.plugins.ophom.auto_off_bed_temp">
+			<span class="add-on">C°</span>
+		</div>
+	</div>
+
+	<br /><br /><br />
+	<h3><b><font color="red">Work in progress !</font></b></h3>
 </div>
 
 <script>

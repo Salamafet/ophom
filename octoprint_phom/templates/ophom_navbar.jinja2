@@ -7,19 +7,7 @@
 <script>
 	var plug_button = document.getElementById("ophom_plugbutton");
 
-	fetch(API_BASEURL + "plugin/ophom?action=checkplugstatus").then(function(response) {
-		response.json().then(function(data) {
-			if(data.reponse == 1)
-			{
-				plug_button.style.color = '#06c700';
-			}
-			else
-			{
-				plug_button.style.color = 'red';
-			}
-		})
-	});
-
+	// Vérification du statut actuel de la configuration de Ophom
 	fetch(API_BASEURL + "plugin/ophom?action=isconfigured").then(function(response) {
 		response.json().then(function(data) {
 			if(data.reponse != 2)
@@ -30,7 +18,22 @@
 				})
 			}
 			else
-			{
+			{	
+				// Récupération du statut au lancement de la page
+				fetch(API_BASEURL + "plugin/ophom?action=checkplugstatus").then(function(response) {
+					response.json().then(function(data) {
+						if(data.reponse == 1)
+						{
+							plug_button.style.color = '#06c700';
+						}
+						else
+						{
+							plug_button.style.color = 'red';
+						}
+					})
+				});
+
+				// Boucle de vérification du statut de la prise
 				var check_plug_status = setInterval(function() {
 					fetch(API_BASEURL + "plugin/ophom?action=checkplugstatus").then(function(response) {
 						response.json().then(function(data) {
@@ -45,12 +48,15 @@
 						})
 					});
 				},5000)
+
+				// Envoi de la commande toggle pour allumer ou éteindre la prise
 				plug_button.addEventListener('click', function(){
 					fetch(API_BASEURL + "plugin/ophom?action=toggle").then(function(response) {
 						response.json().then(function(data) {
 							if(data.reponse == 1)
 							{
 								plug_button.style.color = '#06c700';
+								autoConnect();
 							}
 							else
 							{
@@ -62,4 +68,22 @@
 			}
 		})
 	});
+
+	function autoConnect()
+	{
+		fetch(API_BASEURL + "settings").then(function(response) {
+			response.json().then(function(data) {
+				if(data.plugins.ophom.auto_connect == true)
+				{
+					setTimeout(function() {
+						fetch(API_BASEURL + "connection", {
+							method: "POST",
+							body : JSON.stringify({command: "connect"}),
+							headers: { 'Content-Type': 'application/json'}
+						});
+					}, 5000)
+				}
+			})
+		})
+	}
 </script>

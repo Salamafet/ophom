@@ -17,7 +17,8 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
                   octoprint.plugin.AssetPlugin,
                   octoprint.plugin.TemplatePlugin,
 				  octoprint.plugin.StartupPlugin,
-				  octoprint.plugin.SimpleApiPlugin):
+				  octoprint.plugin.SimpleApiPlugin,
+				  octoprint.plugin.EventHandlerPlugin):
 
 	##~~ SettingsPlugin mixin
 
@@ -25,29 +26,25 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		return dict(
 			hue_token = None,
 			hue_ip = None,
-			hue_configured = False,
 			light_id = None,
 			auto_off = False,
 			auto_off_bed_temp = 60,
 			auto_off_nozzle_temp = 60,
-			light_status = 0
+			auto_connect = False
 		)
 
 	def on_after_startup(self):
-		self._logger.info("Light Status: %s" % self._settings.get(['light_status']))
+		self._logger.info("Hue IP: %s" % self._settings.get(['hue_ip']))
 		#self._settings.set(['hue_token'], None)
 
 
-	# def get_template_vars(self):
-	# 	return dict(
-	# 		hue_token=self._settings.get(["hue_token"]),
-	# 		hue_ip=self._settings.get(["hue_ip"]),
-	# 		hue_configured=self._settings.get(["hue_configured"]),
-	# 		auto_off=self._settings.get(["auto_off"]),
-	# 		auto_off_bed_temp=self._settings.get(["auto_off_bed_temp"]),
-	# 		auto_off_nozzle_temp=self._settings.get(["auto_off_nozzle_temp"]),
-	# 		light_status=self._settings.get(["light_status"])
-	# 	)
+	def get_template_vars(self):
+		return dict(
+			auto_off=self._settings.get(["auto_off"]),
+			auto_off_bed_temp=self._settings.get(["auto_off_bed_temp"]),
+			auto_off_nozzle_temp=self._settings.get(["auto_off_nozzle_temp"]),
+			auto_connect=self._settings.get(['auto_connect'])
+		)
 
 	def get_template_configs(self):
 		return [
@@ -119,6 +116,18 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 				return flask.jsonify(reponse=1)
 		else:
 			return flask.jsonify(error="Invalid command")
+
+	### Extinction automatique 
+	def on_event(self, event, payload):
+		if(event == "PrintDone"):
+			if(self._settings.get(['auto_off']) == True):
+				import time
+				while(True):
+					if(self._printer.get_current_temperatures()['tool0']['actual'] <= int(self._settings.get(['auto_off_nozzle_temp'])) and self._printer.get_current_temperatures()['bed']['actual'] <= int(self._settings.get(['auto_off_bed_temp']))):
+						requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
+						break
+					else:
+						time.sleep(5)
 
 	##~~ AssetPlugin mixin
 
