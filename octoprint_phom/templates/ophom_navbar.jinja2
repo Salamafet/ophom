@@ -20,54 +20,70 @@
 			else
 			{	
 				// Récupération du statut au lancement de la page
-				fetch(API_BASEURL + "plugin/ophom?action=checkplugstatus").then(function(response) {
-					response.json().then(function(data) {
-						if(data.reponse == 1)
-						{
-							plug_button.style.color = '#06c700';
-						}
-						else
-						{
-							plug_button.style.color = 'red';
-						}
-					})
-				});
+				checkPlugStatus();
 
 				// Boucle de vérification du statut de la prise
 				var check_plug_status = setInterval(function() {
-					fetch(API_BASEURL + "plugin/ophom?action=checkplugstatus").then(function(response) {
-						response.json().then(function(data) {
-							if(data.reponse == 1)
-							{
-								plug_button.style.color = '#06c700';
-							}
-							else
-							{
-								plug_button.style.color = 'red';
-							}
-						})
-					});
+					checkPlugStatus();
 				},5000)
 
 				// Envoi de la commande toggle pour allumer ou éteindre la prise
 				plug_button.addEventListener('click', function(){
-					fetch(API_BASEURL + "plugin/ophom?action=toggle").then(function(response) {
+
+					fetch("/api/printer").then(function(response){
 						response.json().then(function(data) {
-							if(data.reponse == 1)
+							if(data.state.text == "Printing")
 							{
-								plug_button.style.color = '#06c700';
-								autoConnect();
+								if(confirm("A print is currently running !\nDo you really want turn off the plug ?"))
+								{
+									toggle();
+								}
 							}
 							else
 							{
-								plug_button.style.color = 'red';
+								toggle();
 							}
-						});
+						})
 					})
+
+					
 				})
 			}
 		})
 	});
+
+	function checkPlugStatus()
+	{
+		fetch(API_BASEURL + "plugin/ophom?action=checkplugstatus").then(function(response) {
+			response.json().then(function(data) {
+				if(data.reponse == 1)
+				{
+					plug_button.style.color = '#06c700';
+				}
+				else
+				{
+					plug_button.style.color = 'red';
+				}
+			})
+		});
+	}
+
+	function toggle()
+	{
+		fetch(API_BASEURL + "plugin/ophom?action=toggle").then(function(response) {
+			response.json().then(function(data) {
+				if(data.reponse == 1)
+				{
+					plug_button.style.color = '#06c700';
+					autoConnect();
+				}
+				else
+				{
+					plug_button.style.color = 'red';
+				}
+			});
+		})
+	}
 
 	function autoConnect()
 	{
