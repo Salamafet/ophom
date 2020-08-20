@@ -51,6 +51,20 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		<input type="checkbox" value="" data-bind="checked: settings.plugins.ophom.auto_off">
 		Power Off the plug after print successfull finish ?
 	</label>
+	<div class="well">
+		Once the minimum temperature reached:
+		<label class="radio">
+			<input type="radio" name="optionsRadios" id="optionsRadios1" value="direct" data-bind="checked: settings.plugins.ophom.auto_off_type">
+			Direct power off<br />
+			<small>This option will directly turn off the plug</small>
+		</label>
+		<label class="radio">
+			<input type="radio" name="optionsRadios" id="optionsRadios2" value="delayed" data-bind="checked: settings.plugins.ophom.auto_off_type">
+			Delayed power off with system shutdown
+			<small><font class="text-info">Usefull if you have a Raspberry Pi powered to printer PSU</font><br />This option will create a power off task on the bridge (2 minutes later) and Shutdown the system (the command must be defined in Settings -> Server)</small>
+		</label>
+	</div>
+
 	Minimum temperature required for automatic shutdown:<br /><br />
 	<div class="control-group disabled" data-bind="css: { disabled: !settings.plugins.ophom.auto_off }">
 		
