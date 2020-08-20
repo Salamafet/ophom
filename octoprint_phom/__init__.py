@@ -28,6 +28,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			hue_ip = None,
 			light_id = None,
 			auto_off = False,
+			auto_off_type = 'direct',
 			auto_off_bed_temp = 60,
 			auto_off_nozzle_temp = 60,
 			auto_connect = False
@@ -124,8 +125,28 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 				import time
 				while(True):
 					if(self._printer.get_current_temperatures()['tool0']['actual'] <= int(self._settings.get(['auto_off_nozzle_temp'])) and self._printer.get_current_temperatures()['bed']['actual'] <= int(self._settings.get(['auto_off_bed_temp']))):
-						requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
-						break
+						if(self._settings.get(['auto_off_type']) == 'direct'):
+							requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
+							break
+						elif(self._settings.get(['auto_off_type']) == 'delayed'):
+							address = "/api/{}/lights/{}/state".format(self._settings.get(['hue_token']), self._settings.get(['light_id']))
+							data = {
+								"name": "Power Off Printer",
+								"description": "Automatic shutdown initiate by OctoPrint",
+								"command": {
+									"address": address,
+									"body": {
+										"on": False
+									},
+									"method": "PUT"
+								},
+								"time": "PT00:02:00"
+							}
+							requests.post("http://{}/api/{}/schedules/".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])), json=data)
+							import os
+							shutdown_command = self._settings.global_get(["server", "commands", "systemShutdownCommand"])
+							os.system(shutdown_command)
+							break
 					else:
 						time.sleep(5)
 
