@@ -3,6 +3,8 @@
 Switch the Philips Hue socket on or off to which your printer is connected  
 You can set an automatic switch-off to a minimum temperature of your choice
 
+The Philips Hue bridge have an internal clock. Ophom can create à delayed power off for a conventional shutdown of the system (eg: Raspberry Pi powered by printer PSU)
+
 ![Ophom Configuration](docs/images_readme/paired.png)
 
 [**ℹ️ Follow this instruction if your USB plug is powering your motherboard print**](https://github.com/Salamafet/ophom/blob/master/docs/usb_avoid_power.md)
