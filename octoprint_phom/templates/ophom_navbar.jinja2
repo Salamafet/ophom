@@ -1,4 +1,4 @@
-<a id="ophom_plugsettings" class="pull-right" title="On/Off Printer">
+<a id="ophom_plugsettings" class="pull-right" title="On/Off Printer" style="cursor: pointer;">
 	<font id="ophom_plugbutton" color='grey'>
 	<i class="fa fa-plug"></i>
 	</font>
@@ -28,7 +28,7 @@
 				},5000)
 
 				// Envoi de la commande toggle pour allumer ou éteindre la prise
-				plug_button.addEventListener('click', function(){
+				document.getElementById("ophom_plugsettings").addEventListener('click', function(){
 
 					fetch("/api/printer").then(function(response){
 						response.json().then(function(data) {
