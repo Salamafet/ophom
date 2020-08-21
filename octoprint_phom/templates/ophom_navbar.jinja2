@@ -30,21 +30,33 @@
 				// Envoi de la commande toggle pour allumer ou éteindre la prise
 				document.getElementById("ophom_plugsettings").addEventListener('click', function(){
 
-					fetch("/api/printer").then(function(response){
+					fetch(API_BASEURL + "connection").then(function(response) {
 						response.json().then(function(data) {
-							if(data.state.text == "Printing")
+							if(data.current.state == "Operational")
 							{
-								if(confirm("A print is currently running !\nDo you really want turn off the plug ?"))
+								toggle();
+							}
+							else if(data.current.state == "Closed")
+							{
+								toggle();
+							}
+							else if(data.current.state == "Printing")
+							{
+								if(plug_button.dataset.status == 1)
+								{
+									if(confirm("A print is currently running !\nDo you really want turn off the plug ?"))
+									{
+										toggle();
+									}
+								}
+								else
 								{
 									toggle();
 								}
 							}
-							else
-							{
-								toggle();
-							}
 						})
 					})
+					
 
 					
 				})
@@ -59,10 +71,12 @@
 				if(data.reponse == 1)
 				{
 					plug_button.style.color = '#06c700';
+					plug_button.dataset.status = 1;
 				}
 				else
 				{
 					plug_button.style.color = 'red';
+					plug_button.dataset.status = 0;
 				}
 			})
 		});
@@ -75,11 +89,13 @@
 				if(data.reponse == 1)
 				{
 					plug_button.style.color = '#06c700';
+					plug_button.dataset.status = 1;
 					autoConnect();
 				}
 				else
 				{
 					plug_button.style.color = 'red';
+					plug_button.dataset.status = 0;
 				}
 			});
 		})
