@@ -104,7 +104,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			r = requests.get("http://{}/api/{}/lights".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])))
 			plug_list = []
 			for device in r.json():
-				if(r.json()[device]['config']['archetype'] == "plug"):
+				if(r.json()[device]['type'] == "On/Off plug-in unit"):
 					plug_list.append([device, r.json()[device]['name']])
 			return flask.jsonify(plug_list)
 		elif(option == "extractconfig"):
