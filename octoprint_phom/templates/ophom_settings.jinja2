@@ -32,8 +32,24 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	<select id="ophom_plugselection" style="display: none;">
 		<option value="">Choose a plug...</option>
 	</select>
-	<br /><br />
+	<br />
+	<!-- DEVICE NOT FOUND -->
+	<div class="advanced_options">
+		<div><small><a href="#" class="muted" data-bind="toggleContent: { class: 'fa-caret-right fa-caret-down', parent: '.advanced_options', container: '.hide' }"><i class="fa fa-caret-right"></i> Can't find your device ?</a></small></div>
+		<div class="hide" style="display: none;">
+			<div class="well">
+				<p>If you can't find your device, please copy your Bridge configuration bellow and create a new issue on the <a href="https://github.com/Salamafet/ophom/issues" target="_blank">Github repository</a>.</p>
+				<br />
+				<textarea id="ophom_bridgejsonconfiguration" rows="10" style="width: 95%;"></textarea>
+				<button onclick="this.previousElementSibling.select(); document.execCommand('copy');">Select and Copy</button>
+			</div>
+		</div>
+	</div>
+	
+	<br />
 	<button id="ophom_validplugselection" class="btn"><i class="fa fa-save"></i> Save Configuration</button>
+
+
 </div>
 
 <!-- #### AUTO OFF CONFIGURATION ####-->
@@ -179,7 +195,6 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 		fetch(API_BASEURL + "plugin/ophom?action=pluglist").then(function(response) {
 			response.json().then(function(data) {
-				console.log(data);
 				document.getElementById("ophom_configuringstatus").innerHTML = "Select a plug in the list bellow";
 				var list_plug = document.getElementById("ophom_plugselection");
 				data.forEach(element => {
@@ -189,6 +204,12 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 					list_plug.add(option);
 				});
 				list_plug.style.display = "";
+			})
+		})
+
+		fetch(API_BASEURL + "plugin/ophom?action=extractconfig").then(function(response) {
+			response.json().then(function(data) {
+				document.getElementById("ophom_bridgejsonconfiguration").innerHTML = JSON.stringify(data, undefined, 4);
 			})
 		})
 	}
