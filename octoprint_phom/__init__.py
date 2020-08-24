@@ -107,6 +107,9 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 				if(r.json()[device]['config']['archetype'] == "plug"):
 					plug_list.append([device, r.json()[device]['name']])
 			return flask.jsonify(plug_list)
+		elif(option == "extractconfig"):
+			r = requests.get("http://{}/api/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])))
+			return flask.jsonify(r.json())
 		elif(option == "toggle"):
 			r = requests.get("http://{}/api/{}/lights/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])))
 			if(r.json()['state']['on']):
