@@ -12,6 +12,7 @@ from __future__ import absolute_import
 import octoprint.plugin
 import flask
 import requests
+import re
 
 class OphomPlugin(octoprint.plugin.SettingsPlugin,
                   octoprint.plugin.AssetPlugin,
@@ -30,7 +31,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			auto_off = False,
 			auto_off_type = 'direct',
 			auto_off_bed_temp = 60,
-			auto_off_nozzle_temp = 60,
+			auto_off_nozzle_temp = 50,
 			auto_connect = False
 		)
 
@@ -118,6 +119,35 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			else:
 				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": True})
 				return flask.jsonify(reponse=1)
+		elif(option == 'getbridgerules'):
+			liste_lamp = {}
+			liste_regle = {}
+
+			request_liste_lamp = requests.get("http://{}/api/{}/lights/".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']))).json()
+			request_liste_regle = requests.get("http://{}/api/{}/rules/".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']))).json()
+
+			for lamp in request_liste_lamp:
+				if(lamp != self._settings.get(['light_id'])):
+					liste_lamp[lamp] = request_liste_lamp[lamp]['name']
+
+			for regle in request_liste_regle:
+				liste_regle_on = []
+				if(request_liste_regle[regle]['name'] == "#ophom_on"):
+					for action in request_liste_regle[regle]['actions']:
+						id_lamp = re.search(r"\/lights\/(\d)\/state", action['address']).group(1)
+						action_lamp = action['body']['on']
+						liste_regle_on.append({"id": id_lamp, "action": action_lamp})
+				liste_regle['on'] = liste_regle_on
+				
+				liste_regle_off = []
+				if(request_liste_regle[regle]['name'] == "#ophom_off"):
+					for action in request_liste_regle[regle]['actions']:
+						id_lamp = re.search(r"\/lights\/(\d)\/state", action['address']).group(1)
+						action_lamp = action['body']['on']
+						liste_regle_off.append({"id": id_lamp, "action": action_lamp})
+				liste_regle["off"] = liste_regle_off
+
+			return flask.jsonify({"lights": liste_lamp, "rules": liste_regle})
 		else:
 			return flask.jsonify(error="Invalid command")
 

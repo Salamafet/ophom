@@ -64,10 +64,32 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	<br />
 
 	<label class="checkbox" disabled>
-		<input type="checkbox" value="" data-bind="checked: settings.plugins.ophom.auto_off">
+		<input type="checkbox" data-bind="checked: settings.plugins.ophom.auto_off">
 		Power Off the plug after print successfull finish ?
 	</label>
 	<div class="well">
+		Minimum temperature required for automatic shutdown:<br />
+		<table>
+			<tr>
+				<td>Nozzle: </td>
+				<td>
+					<div class="input-append">
+						<input class="span2 controls" id="nozzle" type="text" data-bind="value: settings.plugins.ophom.auto_off_nozzle_temp">
+						<span class="add-on">C°</span>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>Bed: </td>
+				<td>
+					<div class="input-append">
+						<input class="span2" id="bed" type="text" data-bind="value: settings.plugins.ophom.auto_off_bed_temp">
+						<span class="add-on">C°</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<br />
 		Once the minimum temperature reached:
 		<label class="radio">
 			<input type="radio" name="optionsRadios" id="optionsRadios1" value="direct" data-bind="checked: settings.plugins.ophom.auto_off_type">
@@ -80,26 +102,71 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 			<small><font class="text-info">Usefull if you have a Raspberry Pi powered to printer PSU</font><br />This option will create a power off task on the bridge (2 minutes later) and Shutdown the system (the command must be defined in Settings -> Server)</small>
 		</label>
 	</div>
+	<div style="margin-top: 30px;"></div>
+	<button class="btn btn-info" data-toggle="modal" href="#ophom_hue_rules" onclick="loadHueRules()">Hue System Rules</button>
 
-	Minimum temperature required for automatic shutdown:<br /><br />
-	<div class="control-group disabled" data-bind="css: { disabled: !settings.plugins.ophom.auto_off }">
-		
-		<div class="input-append">
-			<label class="control-label" for="nozzle">Nozzle:</label>
-			<input class="span2 controls" id="nozzle" type="text" data-bind="value: settings.plugins.ophom.auto_off_nozzle_temp">
-			<span class="add-on">C°</span>
+	<!-- MODAL HUE RULES -->
+	<div id="ophom_hue_rules" class="modal hide fade">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h3>Hue System Rules</h3>
 		</div>
-
-		<div class="input-append">
-			<label class="control-label" for="bed">Bed:</label>
-			<input class="span2" id="bed" type="text" data-bind="value: settings.plugins.ophom.auto_off_bed_temp">
-			<span class="add-on">C°</span>
-		</div>	
+		
+		<div class="modal-body"> 
+			
+			<p>In this section you can create advanced rules for the rest of your hue devices when you power On or Off your printer.<br /><p class="text-warning">Only the rules created by Ophom are displayed here.</p></p>
+			<br />
+			<ul class="breadcrumb">
+				<li><b>When printer goes <font style="color: #06c700;">On</font></b></li>
+			</ul>
+			<div id="ophom_hue_rules_on"></div>
+			<table id="ophom_rules_table_on" class="table table-striped" style="display: none;">
+				<thead>
+					<tr>
+						<th>Device</th>
+						<th>Action</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<br />
+			<ul class="breadcrumb">
+				<li><b>When printer goes <font style="color: red;">Off</font></b></li>
+			</ul>
+			<div id="ophom_hue_rules_off"></div>
+			<table id="ophom_rules_table_off" class="table table-striped" style="display: none;">
+				<thead>
+					<tr>
+						<th>Device</th>
+						<th>Action</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<br />
+			<div class="well well-small">
+				<p style="color: #cc1e0c;">
+					<b>⚠ Be aware !</b><br />
+					This rules are created on your Philips Hue bridge and managed by him too.
+					Even if don't use the On/Off fonction of Ophom, this rules are executed.
+					<br /><br />
+					Eg: If you use the official Hue App or the switch directly on the outlet, these rules are applied.
+					<br /><br />
+					The day you stop using Ophom/Octoprint you need to delete the rules yourself.
+				</p>
+			</div>
+		</div>
+		
+		<div class="modal-footer">
+			<a href="#" class="btn" data-dismiss="modal">Close</a>
+		</div>
 	</div>
 </div>
 
 <br /><br /><br /><br />
-<a href='https://github.com/Salamafet/ophom/blob/master/docs/usb_avoid_power.md' target='_blank'>Follow this instruction if your USB plug is powering your motherboard print</a>
+<a href='https://github.com/Salamafet/ophom/blob/master/docs/usb_avoid_power.md' target='_blank'>ℹ Follow this instruction if your USB plug is powering your motherboard print</a>
 
 <script>
 
@@ -241,4 +308,68 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		document.getElementById("ophom_bridgenotconfigured").style.display = "none";
 		document.getElementById("ophom_autooffconfiguration").style.display = "";
 	}
+
+	function loadHueRules()
+	{
+		var ophom_hue_rules_on = document.getElementById("ophom_hue_rules_on");
+		var ophom_rules_table_on = document.getElementById("ophom_rules_table_on");
+		var ophom_hue_rules_off = document.getElementById("ophom_hue_rules_off");
+		var ophom_rules_table_off = document.getElementById("ophom_rules_table_off");
+
+		fetch(API_BASEURL + "plugin/ophom?action=getbridgerules").then(function(response) {
+			response.json().then(function(data) {
+
+				if(data.rules.on.length == 0)
+				{
+					ophom_hue_rules_on.innerHTML = "<p class='muted'>No rules on your bridge when powering On the printer right now</p>";
+				}
+				else
+				{
+					ophom_rules_table_on.style.display = "";
+					data.rules.on.forEach(function(rule) {
+						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
+						var tr = ophom_rules_table_on.insertRow();
+
+						var td = tr.insertCell();
+						td.appendChild(document.createTextNode(data.lights[rule.id]));
+
+						td = tr.insertCell();
+						td.appendChild(document.createTextNode(statut));
+
+						td = tr.insertCell();
+						var html_statut = document.createElement('span');
+						html_statut.innerHTML = "Saved on the bridge";
+						html_statut.classList.add("text-success"); 
+						td.appendChild(html_statut);
+					})
+				}
+
+				if(data.rules.off.length == 0)
+				{
+					ophom_hue_rules_off.innerHTML = "<p class='muted'>No rules on your bridge when powering Off the printer right now</p>";
+				}
+				else
+				{
+					ophom_rules_table_off.style.display = "";
+					data.rules.off.forEach(function(rule) {
+						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
+						var tr = ophom_rules_table_off.insertRow();
+
+						var td = tr.insertCell();
+						td.appendChild(document.createTextNode(data.lights[rule.id]));
+
+						td = tr.insertCell();
+						td.appendChild(document.createTextNode(statut));
+
+						td = tr.insertCell();
+						var html_statut = document.createElement('span');
+						html_statut.innerHTML = "Saved on the bridge";
+						html_statut.classList.add("text-success"); 
+						td.appendChild(html_statut);
+					})
+				}
+			});
+		});
+	}
+
 </script>
