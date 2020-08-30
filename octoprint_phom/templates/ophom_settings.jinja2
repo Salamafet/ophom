@@ -114,18 +114,24 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		
 		<div class="modal-body"> 
 			
-			<p>In this section you can create advanced rules for the rest of your hue devices when you power On or Off your printer.<br /><p class="text-warning">Only the rules created by Ophom are displayed here.</p></p>
+			<p>In this section you can create rules for the rest of your hue devices when you power On or Off your printer.<br /><p class="text-warning">Only the rules created by Ophom are displayed here.</p></p>
 			<br />
 			<ul class="breadcrumb">
 				<li><b>When printer goes <font style="color: #06c700;">On</font></b></li>
 			</ul>
 			<div id="ophom_hue_rules_on"></div>
+			<style>
+				.table th, .table td{
+					text-align: center;   
+				}
+			</style>
 			<table id="ophom_rules_table_on" class="table table-striped" style="display: none;">
 				<thead>
 					<tr>
 						<th>Device</th>
 						<th>Action</th>
 						<th>Status</th>
+						<th>Delete</th>
 					</tr>
 				</thead>
 				<tbody id="ophom_body_table_on"></tbody>
@@ -141,6 +147,7 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 						<th>Device</th>
 						<th>Action</th>
 						<th>Status</th>
+						<th>Delete</th>
 					</tr>
 				</thead>
 				<tbody id="ophom_body_table_off"></tbody>
@@ -157,6 +164,10 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 					The day you stop using Ophom/Octoprint you need to delete the rules yourself.
 				</p>
 			</div>
+			<p style="text-align: center">
+				<button id="ophom_hue_rules_save" type="submit" class="btn btn-success" disabled>Send rules to the Bridge</button>
+				<button id="ophom_hue_rules_cancel" type="button" class="btn btn-warning" disabled onclick="loadHueRules()">Discard changes</button>
+			</p>
 		</div>
 		
 		<div class="modal-footer">
@@ -318,6 +329,9 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		var ophom_rules_table_off = document.getElementById("ophom_rules_table_off");
 		var ophom_body_table_off = document.getElementById("ophom_body_table_off");
 
+		document.getElementById("ophom_hue_rules_save").disabled = true;
+		document.getElementById("ophom_hue_rules_cancel").disabled = true;
+
 		fetch(API_BASEURL + "plugin/ophom?action=getbridgerules").then(function(response) {
 			response.json().then(function(data) {
 
@@ -333,6 +347,9 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
 						var tr = ophom_body_table_on.insertRow();
 
+						tr.dataset.id = rule.id;
+						tr.dataset.action = statut;
+
 						var td = tr.insertCell();
 						td.appendChild(document.createTextNode(data.lights[rule.id]));
 
@@ -340,10 +357,19 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 						td.appendChild(document.createTextNode(statut));
 
 						td = tr.insertCell();
-						var html_statut = document.createElement('span');
-						html_statut.innerHTML = "Saved on the bridge";
-						html_statut.classList.add("text-success"); 
-						td.appendChild(html_statut);
+						var html_cell = document.createElement('span');
+						html_cell.innerHTML = "Saved on the bridge";
+						html_cell.classList.add("text-success"); 
+						td.appendChild(html_cell);
+
+						td = tr.insertCell();
+						var html_cell = document.createElement('i');
+						html_cell.classList.add("fa", "fa-trash");
+						html_cell.style.cursor = "pointer";
+						html_cell.addEventListener('click', function(){
+							deleteRule(tr);
+						})
+						td.appendChild(html_cell);
 					})
 				}
 
@@ -359,6 +385,9 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
 						var tr = ophom_body_table_off.insertRow();
 
+						tr.dataset.id = rule.id;
+						tr.dataset.action = statut;
+
 						var td = tr.insertCell();
 						td.appendChild(document.createTextNode(data.lights[rule.id]));
 
@@ -366,14 +395,32 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 						td.appendChild(document.createTextNode(statut));
 
 						td = tr.insertCell();
-						var html_statut = document.createElement('span');
-						html_statut.innerHTML = "Saved on the bridge";
-						html_statut.classList.add("text-success"); 
-						td.appendChild(html_statut);
+						var html_cell = document.createElement('span');
+						html_cell.innerHTML = "Saved on the bridge";
+						html_cell.classList.add("text-success"); 
+						td.appendChild(html_cell);
+
+						td = tr.insertCell();
+						var html_cell = document.createElement('i');
+						html_cell.classList.add("fa", "fa-trash");
+						html_cell.style.cursor = "pointer";
+						html_cell.addEventListener('click', function(){
+							deleteRule(tr);
+						})
+						td.appendChild(html_cell);
 					})
 				}
 			});
 		});
+	}
+
+	function deleteRule(row)
+	{
+		document.getElementById("ophom_hue_rules_save").disabled = false;
+		document.getElementById("ophom_hue_rules_cancel").disabled = false;
+		row.classList.add("error");
+		row.cells[2].innerHTML = "<span class='text-error'>Pending for deletion</span>";
+		row.cells[3].innerHTML = "";
 	}
 
 </script>
