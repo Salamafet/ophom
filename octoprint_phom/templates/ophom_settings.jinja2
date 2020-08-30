@@ -128,7 +128,7 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 						<th>Status</th>
 					</tr>
 				</thead>
-				<tbody></tbody>
+				<tbody id="ophom_body_table_on"></tbody>
 			</table>
 			<br />
 			<ul class="breadcrumb">
@@ -143,7 +143,7 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 						<th>Status</th>
 					</tr>
 				</thead>
-				<tbody></tbody>
+				<tbody id="ophom_body_table_off"></tbody>
 			</table>
 			<br />
 			<div class="well well-small">
@@ -313,22 +313,25 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	{
 		var ophom_hue_rules_on = document.getElementById("ophom_hue_rules_on");
 		var ophom_rules_table_on = document.getElementById("ophom_rules_table_on");
+		var ophom_body_table_on =document.getElementById("ophom_body_table_on");
 		var ophom_hue_rules_off = document.getElementById("ophom_hue_rules_off");
 		var ophom_rules_table_off = document.getElementById("ophom_rules_table_off");
+		var ophom_body_table_off = document.getElementById("ophom_body_table_off");
 
 		fetch(API_BASEURL + "plugin/ophom?action=getbridgerules").then(function(response) {
 			response.json().then(function(data) {
 
 				if(data.rules.on.length == 0)
 				{
-					ophom_hue_rules_on.innerHTML = "<p class='muted'>No rules on your bridge when powering On the printer right now</p>";
+					ophom_hue_rules_on.innerHTML = "<p class='muted'>No rules right now</p>";
 				}
 				else
 				{
 					ophom_rules_table_on.style.display = "";
+					ophom_body_table_on.innerHTML = "";
 					data.rules.on.forEach(function(rule) {
 						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
-						var tr = ophom_rules_table_on.insertRow();
+						var tr = ophom_body_table_on.insertRow();
 
 						var td = tr.insertCell();
 						td.appendChild(document.createTextNode(data.lights[rule.id]));
@@ -346,14 +349,15 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 				if(data.rules.off.length == 0)
 				{
-					ophom_hue_rules_off.innerHTML = "<p class='muted'>No rules on your bridge when powering Off the printer right now</p>";
+					ophom_hue_rules_off.innerHTML = "<p class='muted'>No rules right now</p>";
 				}
 				else
 				{
 					ophom_rules_table_off.style.display = "";
+					ophom_body_table_off.innerHTML = "";
 					data.rules.off.forEach(function(rule) {
 						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
-						var tr = ophom_rules_table_off.insertRow();
+						var tr = ophom_body_table_off.insertRow();
 
 						var td = tr.insertCell();
 						td.appendChild(document.createTextNode(data.lights[rule.id]));
