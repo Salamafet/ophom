@@ -163,13 +163,13 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 			When printer goes 
 			<select id="ophom_rule_add_condition" class="span1">
 				<option value="false">--</option>
-				<option value="on">On</option>
-				<option value="off">Off</option>
+				<option value="On">On</option>
+				<option value="Off">Off</option>
 			</select>, turn 
 			<select id="ophom_rule_add_action" class="span1">
 				<option value="false">--</option>
-				<option value="on">On</option>
-				<option value="off">Off</option>
+				<option value="On">On</option>
+				<option value="Off">Off</option>
 			</select>
 			<select id="ophom_rule_add_device" class="span2">
 				
@@ -346,7 +346,7 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	{
 		var ophom_hue_rules_on = document.getElementById("ophom_hue_rules_on");
 		var ophom_rules_table_on = document.getElementById("ophom_rules_table_on");
-		var ophom_body_table_on =document.getElementById("ophom_body_table_on");
+		var ophom_body_table_on = document.getElementById("ophom_body_table_on");
 		var ophom_hue_rules_off = document.getElementById("ophom_hue_rules_off");
 		var ophom_rules_table_off = document.getElementById("ophom_rules_table_off");
 		var ophom_body_table_off = document.getElementById("ophom_body_table_off");
@@ -373,14 +373,18 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 					ophom_rule_add_device.add(option);
 				});
 
+				ophom_body_table_on.innerHTML = "";
+				ophom_body_table_off.innerHTML = "";
+				ophom_rules_table_on.style.display = "none";
+				ophom_rules_table_off.style.display = "none";
+
 				if(data.rules.on.length == 0)
 				{
 					ophom_hue_rules_on.innerHTML = "<p class='muted'>No rules right now</p>";
 				}
 				else
 				{
-					ophom_rules_table_on.style.display = "";
-					ophom_body_table_on.innerHTML = "";
+					ophom_rules_table_on.style.display = "";	
 					data.rules.on.forEach(function(rule) {
 						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
 						var tr = ophom_body_table_on.insertRow();
@@ -418,7 +422,6 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 				else
 				{
 					ophom_rules_table_off.style.display = "";
-					ophom_body_table_off.innerHTML = "";
 					data.rules.off.forEach(function(rule) {
 						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
 						var tr = ophom_body_table_off.insertRow();
@@ -464,16 +467,54 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 	function addRule()
 	{
+
+		document.getElementById("ophom_hue_rules_save").disabled = false;
+		document.getElementById("ophom_hue_rules_cancel").disabled = false;
+
 		var condition = document.getElementById("ophom_rule_add_condition");
 		var action = document.getElementById("ophom_rule_add_action");
 		var device = document.getElementById("ophom_rule_add_device");
 
 		if(condition.value != "false" && action.value != "false" && device.value != "false")
 		{
-			if(condition.value == "on")
+			if(condition.value == "On")
 			{
-				
+				var ophom_hue_rules = document.getElementById("ophom_hue_rules_on");
+				var ophom_rules_table = document.getElementById("ophom_rules_table_on");
+				var ophom_body_table = document.getElementById("ophom_body_table_on");
 			}
+			else
+			{
+				var ophom_hue_rules = document.getElementById("ophom_hue_rules_off");
+				var ophom_rules_table = document.getElementById("ophom_rules_table_off");
+				var ophom_body_table = document.getElementById("ophom_body_table_off");
+			}
+
+			ophom_hue_rules.innerHTML = "";
+			ophom_rules_table.style.display = "";
+
+			var tr = ophom_body_table.insertRow();
+
+			tr.dataset.id = device.value;
+			tr.dataset.action = action.value;
+
+			tr.classList.add("info");
+
+			var td = tr.insertCell();
+			td.appendChild(document.createTextNode(device.options[device.options.selectedIndex].text));
+
+			td = tr.insertCell();
+			td.appendChild(document.createTextNode(action.value));
+
+			td = tr.insertCell();
+			var html_cell = document.createElement('span');
+			html_cell.innerHTML = "Pending for registration";
+			html_cell.classList.add("text-info"); 
+			td.appendChild(html_cell);
+
+			td = tr.insertCell();
+			var html_cell = document.createElement('i');
+			td.appendChild(html_cell);
 		}
 	}
 
