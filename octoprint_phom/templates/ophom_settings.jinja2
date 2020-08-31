@@ -124,6 +124,10 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 				.table th, .table td{
 					text-align: center;   
 				}
+				select
+				{
+					margin-top: 10px;
+				}
 			</style>
 			<table id="ophom_rules_table_on" class="table table-striped" style="display: none;">
 				<thead>
@@ -153,6 +157,24 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 				<tbody id="ophom_body_table_off"></tbody>
 			</table>
 			<br />
+			<ul class="breadcrumb">
+				<li><b>Add rule</b></li>
+			</ul>
+			When printer goes 
+			<select id="ophom_rule_add_condition" class="span1">
+				<option value="false">--</option>
+				<option value="on">On</option>
+				<option value="off">Off</option>
+			</select>, turn 
+			<select id="ophom_rule_add_action" class="span1">
+				<option value="false">--</option>
+				<option value="on">On</option>
+				<option value="off">Off</option>
+			</select>
+			<select id="ophom_rule_add_device" class="span2">
+				
+			</select>
+			<button class="btn btn-primary pull-right" style="margin-top: 10px;" onclick="addRule()">Add Rule</button>
 			<div class="well well-small">
 				<p style="color: #cc1e0c;">
 					<b>⚠ Be aware !</b><br />
@@ -329,11 +351,27 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		var ophom_rules_table_off = document.getElementById("ophom_rules_table_off");
 		var ophom_body_table_off = document.getElementById("ophom_body_table_off");
 
+		var ophom_rule_add_device = document.getElementById("ophom_rule_add_device");
+
 		document.getElementById("ophom_hue_rules_save").disabled = true;
 		document.getElementById("ophom_hue_rules_cancel").disabled = true;
 
 		fetch(API_BASEURL + "plugin/ophom?action=getbridgerules").then(function(response) {
 			response.json().then(function(data) {
+
+				ophom_rule_add_device.innerHTML = "";
+
+				var option = document.createElement("option");
+				option.text = "--";
+				option.value = false;
+				ophom_rule_add_device.add(option);
+
+				Object.keys(data.lights).forEach(function(light){
+					var option = document.createElement("option");
+					option.text = data.lights[light];
+					option.value = light;
+					ophom_rule_add_device.add(option);
+				});
 
 				if(data.rules.on.length == 0)
 				{
@@ -421,6 +459,22 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		row.classList.add("error");
 		row.cells[2].innerHTML = "<span class='text-error'>Pending for deletion</span>";
 		row.cells[3].innerHTML = "";
+		row.dataset.delete = true;
+	}
+
+	function addRule()
+	{
+		var condition = document.getElementById("ophom_rule_add_condition");
+		var action = document.getElementById("ophom_rule_add_action");
+		var device = document.getElementById("ophom_rule_add_device");
+
+		if(condition.value != "false" && action.value != "false" && device.value != "false")
+		{
+			if(condition.value == "on")
+			{
+				
+			}
+		}
 	}
 
 </script>
