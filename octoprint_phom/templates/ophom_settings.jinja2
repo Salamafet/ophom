@@ -64,10 +64,32 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	<br />
 
 	<label class="checkbox" disabled>
-		<input type="checkbox" value="" data-bind="checked: settings.plugins.ophom.auto_off">
+		<input type="checkbox" data-bind="checked: settings.plugins.ophom.auto_off">
 		Power Off the plug after print successfull finish ?
 	</label>
 	<div class="well">
+		Minimum temperature required for automatic shutdown:<br />
+		<table>
+			<tr>
+				<td>Nozzle: </td>
+				<td>
+					<div class="input-append">
+						<input class="span2 controls" id="nozzle" type="text" data-bind="value: settings.plugins.ophom.auto_off_nozzle_temp">
+						<span class="add-on">C°</span>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>Bed: </td>
+				<td>
+					<div class="input-append">
+						<input class="span2" id="bed" type="text" data-bind="value: settings.plugins.ophom.auto_off_bed_temp">
+						<span class="add-on">C°</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<br />
 		Once the minimum temperature reached:
 		<label class="radio">
 			<input type="radio" name="optionsRadios" id="optionsRadios1" value="direct" data-bind="checked: settings.plugins.ophom.auto_off_type">
@@ -80,26 +102,104 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 			<small><font class="text-info">Usefull if you have a Raspberry Pi powered to printer PSU</font><br />This option will create a power off task on the bridge (2 minutes later) and Shutdown the system (the command must be defined in Settings -> Server)</small>
 		</label>
 	</div>
+	<div style="margin-top: 30px;"></div>
+	<button class="btn btn-info" data-toggle="modal" href="#ophom_hue_rules" onclick="loadHueRules()">Hue System Rules</button>
 
-	Minimum temperature required for automatic shutdown:<br /><br />
-	<div class="control-group disabled" data-bind="css: { disabled: !settings.plugins.ophom.auto_off }">
-		
-		<div class="input-append">
-			<label class="control-label" for="nozzle">Nozzle:</label>
-			<input class="span2 controls" id="nozzle" type="text" data-bind="value: settings.plugins.ophom.auto_off_nozzle_temp">
-			<span class="add-on">C°</span>
+	<!-- MODAL HUE RULES -->
+	<div id="ophom_hue_rules" class="modal hide fade">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h3>Hue System Rules</h3>
 		</div>
-
-		<div class="input-append">
-			<label class="control-label" for="bed">Bed:</label>
-			<input class="span2" id="bed" type="text" data-bind="value: settings.plugins.ophom.auto_off_bed_temp">
-			<span class="add-on">C°</span>
-		</div>	
+		
+		<div class="modal-body"> 
+			
+			<p>In this section you can create rules for the rest of your hue devices when you power On or Off your printer.<br /><p class="text-warning">Only the rules created by Ophom are displayed here.</p></p>
+			<br />
+			<ul class="breadcrumb">
+				<li><b>When printer goes <font style="color: #06c700;">On</font></b></li>
+			</ul>
+			<div id="ophom_hue_rules_on"></div>
+			<style>
+				.table th, .table td{
+					text-align: center;   
+				}
+				select
+				{
+					margin-top: 10px;
+				}
+			</style>
+			<table id="ophom_rules_table_on" class="table table-striped" style="display: none;">
+				<thead>
+					<tr>
+						<th>Device</th>
+						<th>Action</th>
+						<th>Status</th>
+						<th>Delete</th>
+					</tr>
+				</thead>
+				<tbody id="ophom_body_table_on"></tbody>
+			</table>
+			<br />
+			<ul class="breadcrumb">
+				<li><b>When printer goes <font style="color: red;">Off</font></b></li>
+			</ul>
+			<div id="ophom_hue_rules_off"></div>
+			<table id="ophom_rules_table_off" class="table table-striped" style="display: none;">
+				<thead>
+					<tr>
+						<th>Device</th>
+						<th>Action</th>
+						<th>Status</th>
+						<th>Delete</th>
+					</tr>
+				</thead>
+				<tbody id="ophom_body_table_off"></tbody>
+			</table>
+			<br />
+			<ul class="breadcrumb">
+				<li><b>Add rule</b></li>
+			</ul>
+			When printer goes 
+			<select id="ophom_rule_add_condition" class="span1">
+				<option value="false">--</option>
+				<option value="On">On</option>
+				<option value="Off">Off</option>
+			</select>, turn 
+			<select id="ophom_rule_add_action" class="span1">
+				<option value="false">--</option>
+				<option value="On">On</option>
+				<option value="Off">Off</option>
+			</select>
+			<select id="ophom_rule_add_device" class="span2">
+				
+			</select>
+			<button class="btn btn-primary pull-right" style="margin-top: 10px;" onclick="addRule()">Add Rule</button>
+			<div class="well well-small">
+				<p style="color: #cc1e0c;">
+					<b>⚠ Be aware !</b><br />
+					This rules are created on your Philips Hue bridge and managed by him too.
+					Even if don't use the On/Off fonction of Ophom, this rules are executed.
+					<br /><br />
+					Eg: If you use the official Hue App or the switch directly on the outlet, these rules are applied.
+					<br /><br />
+					The day you stop using Ophom/Octoprint you need to delete the rules yourself.
+				</p>
+			</div>
+			<p style="text-align: center">
+				<button id="ophom_hue_rules_save" type="submit" class="btn btn-success" disabled onclick="sendNewRules()">Send rules to the Bridge</button>
+				<button id="ophom_hue_rules_cancel" type="button" class="btn btn-warning" disabled onclick="loadHueRules()">Discard changes</button>
+			</p>
+		</div>
+		
+		<div class="modal-footer">
+			<a href="#" class="btn" data-dismiss="modal">Close</a>
+		</div>
 	</div>
 </div>
 
 <br /><br /><br /><br />
-<a href='https://github.com/Salamafet/ophom/blob/master/docs/usb_avoid_power.md' target='_blank'>Follow this instruction if your USB plug is powering your motherboard print</a>
+<a href='https://github.com/Salamafet/ophom/blob/master/docs/usb_avoid_power.md' target='_blank'>ℹ Follow this instruction if your USB plug is powering your motherboard print</a>
 
 <script>
 
@@ -241,4 +341,223 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		document.getElementById("ophom_bridgenotconfigured").style.display = "none";
 		document.getElementById("ophom_autooffconfiguration").style.display = "";
 	}
+
+	function loadHueRules()
+	{
+		var ophom_hue_rules_on = document.getElementById("ophom_hue_rules_on");
+		var ophom_rules_table_on = document.getElementById("ophom_rules_table_on");
+		var ophom_body_table_on = document.getElementById("ophom_body_table_on");
+		var ophom_hue_rules_off = document.getElementById("ophom_hue_rules_off");
+		var ophom_rules_table_off = document.getElementById("ophom_rules_table_off");
+		var ophom_body_table_off = document.getElementById("ophom_body_table_off");
+
+		var ophom_rule_add_device = document.getElementById("ophom_rule_add_device");
+
+		document.getElementById("ophom_hue_rules_save").disabled = true;
+		document.getElementById("ophom_hue_rules_cancel").disabled = true;
+
+		fetch(API_BASEURL + "plugin/ophom?action=getbridgerules").then(function(response) {
+			response.json().then(function(data) {
+
+				ophom_rule_add_device.innerHTML = "";
+
+				var option = document.createElement("option");
+				option.text = "--";
+				option.value = false;
+				ophom_rule_add_device.add(option);
+
+				Object.keys(data.lights).forEach(function(light){
+					var option = document.createElement("option");
+					option.text = data.lights[light];
+					option.value = light;
+					ophom_rule_add_device.add(option);
+				});
+
+				ophom_body_table_on.innerHTML = "";
+				ophom_body_table_off.innerHTML = "";
+				ophom_rules_table_on.style.display = "none";
+				ophom_rules_table_off.style.display = "none";
+
+				if(data.rules.on.length == 0)
+				{
+					ophom_hue_rules_on.innerHTML = "<p class='muted'>No rules right now</p>";
+				}
+				else
+				{
+					ophom_rules_table_on.style.display = "";	
+					data.rules.on.forEach(function(rule) {
+						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
+						var tr = ophom_body_table_on.insertRow();
+
+						tr.dataset.id = rule.id;
+						tr.dataset.action = statut;
+
+						var td = tr.insertCell();
+						td.appendChild(document.createTextNode(data.lights[rule.id]));
+
+						td = tr.insertCell();
+						td.appendChild(document.createTextNode(statut));
+
+						td = tr.insertCell();
+						var html_cell = document.createElement('span');
+						html_cell.innerHTML = "Saved on the bridge";
+						html_cell.classList.add("text-success"); 
+						td.appendChild(html_cell);
+
+						td = tr.insertCell();
+						var html_cell = document.createElement('i');
+						html_cell.classList.add("fa", "fa-trash");
+						html_cell.style.cursor = "pointer";
+						html_cell.addEventListener('click', function(){
+							deleteRule(tr);
+						})
+						td.appendChild(html_cell);
+					})
+				}
+
+				if(data.rules.off.length == 0)
+				{
+					ophom_hue_rules_off.innerHTML = "<p class='muted'>No rules right now</p>";
+				}
+				else
+				{
+					ophom_rules_table_off.style.display = "";
+					data.rules.off.forEach(function(rule) {
+						if(rule.action) { var statut = "On";}else{ var statut = "Off";}
+						var tr = ophom_body_table_off.insertRow();
+
+						tr.dataset.id = rule.id;
+						tr.dataset.action = statut;
+
+						var td = tr.insertCell();
+						td.appendChild(document.createTextNode(data.lights[rule.id]));
+
+						td = tr.insertCell();
+						td.appendChild(document.createTextNode(statut));
+
+						td = tr.insertCell();
+						var html_cell = document.createElement('span');
+						html_cell.innerHTML = "Saved on the bridge";
+						html_cell.classList.add("text-success"); 
+						td.appendChild(html_cell);
+
+						td = tr.insertCell();
+						var html_cell = document.createElement('i');
+						html_cell.classList.add("fa", "fa-trash");
+						html_cell.style.cursor = "pointer";
+						html_cell.addEventListener('click', function(){
+							deleteRule(tr);
+						})
+						td.appendChild(html_cell);
+					})
+				}
+			});
+		});
+	}
+
+	function deleteRule(row)
+	{
+		document.getElementById("ophom_hue_rules_save").disabled = false;
+		document.getElementById("ophom_hue_rules_cancel").disabled = false;
+		row.classList.add("error");
+		row.cells[2].innerHTML = "<span class='text-error'>Pending for deletion</span>";
+		row.cells[3].innerHTML = "";
+		row.dataset.delete = true;
+	}
+
+	function addRule()
+	{
+		document.getElementById("ophom_hue_rules_save").disabled = false;
+		document.getElementById("ophom_hue_rules_cancel").disabled = false;
+
+		var condition = document.getElementById("ophom_rule_add_condition");
+		var action = document.getElementById("ophom_rule_add_action");
+		var device = document.getElementById("ophom_rule_add_device");
+
+		if(condition.value != "false" && action.value != "false" && device.value != "false")
+		{
+			if(condition.value == "On")
+			{
+				var ophom_hue_rules = document.getElementById("ophom_hue_rules_on");
+				var ophom_rules_table = document.getElementById("ophom_rules_table_on");
+				var ophom_body_table = document.getElementById("ophom_body_table_on");
+			}
+			else
+			{
+				var ophom_hue_rules = document.getElementById("ophom_hue_rules_off");
+				var ophom_rules_table = document.getElementById("ophom_rules_table_off");
+				var ophom_body_table = document.getElementById("ophom_body_table_off");
+			}
+
+			ophom_hue_rules.innerHTML = "";
+			ophom_rules_table.style.display = "";
+
+			var tr = ophom_body_table.insertRow();
+
+			tr.dataset.id = device.value;
+			tr.dataset.action = action.value;
+
+			tr.classList.add("info");
+
+			var td = tr.insertCell();
+			td.appendChild(document.createTextNode(device.options[device.options.selectedIndex].text));
+
+			td = tr.insertCell();
+			td.appendChild(document.createTextNode(action.value));
+
+			td = tr.insertCell();
+			var html_cell = document.createElement('span');
+			html_cell.innerHTML = "Pending for registration";
+			html_cell.classList.add("text-info"); 
+			td.appendChild(html_cell);
+
+			td = tr.insertCell();
+			var html_cell = document.createElement('i');
+			td.appendChild(html_cell);
+		}
+	}
+
+	function sendNewRules()
+	{
+
+		var ophom_body_table_on = document.getElementById("ophom_body_table_on");
+		var ophom_body_table_off = document.getElementById("ophom_body_table_off");
+
+		var rules = {};
+		rules.on = [];
+		rules.off = [];
+
+
+		// On rules
+		for(rule of ophom_body_table_on.rows)
+		{
+			if(rule.dataset.delete == undefined)
+			{
+				rules.on.push({"id": rule.dataset.id, "action": rule.dataset.action});
+			}
+		}
+
+		// Off rules
+		for(rule of ophom_body_table_off.rows)
+		{
+			if(rule.dataset.delete == undefined)
+			{
+				rules.off.push({"id": rule.dataset.id, "action": rule.dataset.action});
+			}
+		}
+
+		fetch(API_BASEURL + "plugin/ophom", {
+					method: "POST",
+					body : JSON.stringify({command: "updaterules", "rules": rules}),
+					headers: { 'Content-Type': 'application/json'}
+				}).then(function(response) {
+					response.json().then(function(data) {
+						if(data.reponse == "success")
+						{
+							loadHueRules();
+						}
+					});
+				});
+	}
+
 </script>
