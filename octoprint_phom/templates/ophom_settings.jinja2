@@ -187,7 +187,7 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 				</p>
 			</div>
 			<p style="text-align: center">
-				<button id="ophom_hue_rules_save" type="submit" class="btn btn-success" disabled>Send rules to the Bridge</button>
+				<button id="ophom_hue_rules_save" type="submit" class="btn btn-success" disabled onclick="sendNewRules()">Send rules to the Bridge</button>
 				<button id="ophom_hue_rules_cancel" type="button" class="btn btn-warning" disabled onclick="loadHueRules()">Discard changes</button>
 			</p>
 		</div>
@@ -467,7 +467,6 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 	function addRule()
 	{
-
 		document.getElementById("ophom_hue_rules_save").disabled = false;
 		document.getElementById("ophom_hue_rules_cancel").disabled = false;
 
@@ -516,6 +515,49 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 			var html_cell = document.createElement('i');
 			td.appendChild(html_cell);
 		}
+	}
+
+	function sendNewRules()
+	{
+
+		var ophom_body_table_on = document.getElementById("ophom_body_table_on");
+		var ophom_body_table_off = document.getElementById("ophom_body_table_off");
+
+		var rules = {};
+		rules.on = [];
+		rules.off = [];
+
+
+		// On rules
+		for(rule of ophom_body_table_on.rows)
+		{
+			if(rule.dataset.delete == undefined)
+			{
+				rules.on.push({"id": rule.dataset.id, "action": rule.dataset.action});
+			}
+		}
+
+		// Off rules
+		for(rule of ophom_body_table_off.rows)
+		{
+			if(rule.dataset.delete == undefined)
+			{
+				rules.off.push({"id": rule.dataset.id, "action": rule.dataset.action});
+			}
+		}
+
+		fetch(API_BASEURL + "plugin/ophom", {
+					method: "POST",
+					body : JSON.stringify({command: "updaterules", "rules": rules}),
+					headers: { 'Content-Type': 'application/json'}
+				}).then(function(response) {
+					response.json().then(function(data) {
+						if(data.reponse == "success")
+						{
+							loadHueRules();
+						}
+					});
+				});
 	}
 
 </script>

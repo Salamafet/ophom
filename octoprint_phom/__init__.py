@@ -59,7 +59,8 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		return dict(
 			command1=[],
 			pairing=['ip'],
-			configuration=['device_id']
+			configuration=['device_id'],
+			updaterules=['rules']
 		)
 
 	def on_api_command(self, command, data):
@@ -78,6 +79,68 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		elif command == "configuration":
 			self._settings.set(['light_id'], data['device_id'])
 			return flask.jsonify(reponse="success")
+		elif command == "updaterules":
+			# Fetch actual rules to get the id of the old one
+			rules_list = requests.get("http://{}/api/{}/rules".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']))).json()
+
+			id_on = None
+			id_off = None
+
+			for rule in rules_list:
+				if(rules_list[rule]['name'] == "#ophom_on"):
+					id_on = rule
+				if(rules_list[rule]['name'] == "#ophom_off"):
+					id_off = rule
+
+			if(id_on != None):
+				requests.delete("http://{}/api/{}/rules/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), id_on))
+			if(id_off != None):
+				requests.delete("http://{}/api/{}/rules/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), id_off))
+
+			if(len(data['rules']['on']) != 0):
+				actions = []
+				for rule in data['rules']['on']:
+					if(rule['action'] == "On"):
+						on = True
+					elif(rule['action'] == "Off"):
+						on = False
+
+					actions.append({"address":"/lights/{}/state".format(rule['id']), "method":"PUT", "body":{"on":on}})
+
+				data_request = {
+					"name": "#ophom_on",
+					"conditions": [
+						{"address":"/lights/{}/state/on".format(self._settings.get(['light_id'])), "operator":"eq", "value":"true"}
+					],
+					"actions": actions
+				}
+
+				response = requests.post("http://{}/api/{}/rules".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])), json=data_request)
+
+				print(response.json())
+
+			if(len(data['rules']['off']) != 0):
+				actions = []
+				for rule in data['rules']['off']:
+					if(rule['action'] == "On"):
+						on = True
+					elif(rule['action'] == "Off"):
+						on = False
+
+					actions.append({"address":"/lights/{}/state".format(rule['id']), "method":"PUT", "body":{"on":on}})
+
+				data_request = {
+					"name": "#ophom_off",
+					"conditions": [
+						{"address":"/lights/{}/state/on".format(self._settings.get(['light_id'])), "operator":"eq", "value":"false"}
+					],
+					"actions": actions
+				}
+				
+				requests.post("http://{}/api/{}/rules".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])), json=data_request)
+
+			return flask.jsonify(reponse="success")
+
 
 
 	# Requete API get
@@ -122,6 +185,8 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		elif(option == 'getbridgerules'):
 			liste_lamp = {}
 			liste_regle = {}
+			liste_regle['on'] = []
+			liste_regle['off'] = []
 
 			request_liste_lamp = requests.get("http://{}/api/{}/lights/".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']))).json()
 			request_liste_regle = requests.get("http://{}/api/{}/rules/".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']))).json()
@@ -130,22 +195,22 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 				if(lamp != self._settings.get(['light_id'])):
 					liste_lamp[lamp] = request_liste_lamp[lamp]['name']
 
+			liste_regle_on = []
+			liste_regle_off = []
 			for regle in request_liste_regle:
-				liste_regle_on = []
 				if(request_liste_regle[regle]['name'] == "#ophom_on"):
 					for action in request_liste_regle[regle]['actions']:
 						id_lamp = re.search(r"\/lights\/(\d)\/state", action['address']).group(1)
 						action_lamp = action['body']['on']
 						liste_regle_on.append({"id": id_lamp, "action": action_lamp})
-				liste_regle['on'] = liste_regle_on
+					liste_regle['on'] = liste_regle_on
 				
-				liste_regle_off = []
 				if(request_liste_regle[regle]['name'] == "#ophom_off"):
 					for action in request_liste_regle[regle]['actions']:
 						id_lamp = re.search(r"\/lights\/(\d)\/state", action['address']).group(1)
 						action_lamp = action['body']['on']
 						liste_regle_off.append({"id": id_lamp, "action": action_lamp})
-				liste_regle["off"] = liste_regle_off
+					liste_regle["off"] = liste_regle_off
 
 			return flask.jsonify({"lights": liste_lamp, "rules": liste_regle})
 		else:
