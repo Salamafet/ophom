@@ -63,18 +63,22 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 	<br />
 
-	<label class="checkbox" disabled>
-		<input type="checkbox" data-bind="checked: settings.plugins.ophom.auto_off">
-		Power Off the plug after print successfull finish ?
-	</label>
 	<div class="well">
+		<blockquote>
+			<p>Automatic Shutdown</p>
+		</blockquote>
+		<label class="checkbox" disabled>
+			<input type="checkbox" data-bind="checked: settings.plugins.ophom.auto_off">
+			Power Off the plug after print successfull finish ?
+		</label>
+		<br />
 		Minimum temperature required for automatic shutdown:<br />
 		<table>
 			<tr>
 				<td>Nozzle: </td>
 				<td>
 					<div class="input-append">
-						<input class="span2 controls" id="nozzle" type="text" data-bind="value: settings.plugins.ophom.auto_off_nozzle_temp">
+						<input class="span3 controls" id="nozzle" type="text" data-bind="value: settings.plugins.ophom.auto_off_nozzle_temp">
 						<span class="add-on">C°</span>
 					</div>
 				</td>
@@ -83,7 +87,7 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 				<td>Bed: </td>
 				<td>
 					<div class="input-append">
-						<input class="span2" id="bed" type="text" data-bind="value: settings.plugins.ophom.auto_off_bed_temp">
+						<input class="span3" id="bed" type="text" data-bind="value: settings.plugins.ophom.auto_off_bed_temp">
 						<span class="add-on">C°</span>
 					</div>
 				</td>
@@ -102,6 +106,46 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 			<small><font class="text-info">Usefull if you have a Raspberry Pi powered to printer PSU</font><br />This option will create a power off task on the bridge (2 minutes later) and Shutdown the system (the command must be defined in Settings -> Server)</small>
 		</label>
 	</div>
+
+	<div class="well" style='background-color: #ffcece; border: 1px solid #e64e4e;'>
+		<blockquote>
+			<p>Security Shutdown</p>
+		</blockquote>
+		<label class="checkbox" disabled>
+			<input type="checkbox" data-bind="checked: settings.plugins.ophom.security_connection_lost">
+			Power Off the plug if the data connection to the printer is lost ?
+		</label>
+		<br />
+		<label class="checkbox" disabled>
+			<input type="checkbox" data-bind="checked: settings.plugins.ophom.security_emergency_stop">
+			Power Off the plug if emergency stop (<b>M112</b>) is send to the printer ?
+		</label>
+		<br />
+		Maximum temperature required for emergency shutdown <small><font class="text-info">Enter a high value for disabling</font></small>
+		<table>
+			<tr>
+				<td>Nozzle: </td>
+				<td>
+					<div class="input-append">
+						<input class="span3 controls" id="nozzle" type="text" data-bind="value: settings.plugins.ophom.security_nozzle_temp">
+						<span class="add-on">C°</span>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>Bed: </td>
+				<td>
+					<div class="input-append">
+						<input class="span3" id="bed" type="text" data-bind="value: settings.plugins.ophom.security_bed_temp">
+						<span class="add-on">C°</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+
 	<div style="margin-top: 30px;"></div>
 	<button class="btn btn-info" data-toggle="modal" href="#ophom_hue_rules" onclick="loadHueRules()">Hue System Rules</button>
 
@@ -198,7 +242,7 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	</div>
 </div>
 
-<br /><br /><br /><br />
+<br /><br />
 <a href='https://github.com/Salamafet/ophom/blob/master/docs/usb_avoid_power.md' target='_blank'>ℹ Follow this instruction if your USB plug is powering your motherboard print</a>
 
 <script>
