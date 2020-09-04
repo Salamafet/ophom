@@ -10,9 +10,11 @@ from __future__ import absolute_import
 # Take a look at the documentation on what other plugin mixins are available.
 
 import octoprint.plugin
+from octoprint.util import RepeatedTimer
 import flask
 import requests
 import re
+import time
 
 class OphomPlugin(octoprint.plugin.SettingsPlugin,
                   octoprint.plugin.AssetPlugin,
@@ -32,13 +34,28 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			auto_off_type = 'direct',
 			auto_off_bed_temp = 60,
 			auto_off_nozzle_temp = 50,
-			auto_connect = False
+			auto_connect = False,
+			security_connection_lost = False,
+			security_emergency_stop = True,
+			security_nozzle_temp = 250,
+			security_bed_temp = 80
 		)
 
 	def on_after_startup(self):
 		self._logger.info("Hue IP: %s" % self._settings.get(['hue_ip']))
 		#self._settings.set(['hue_token'], None)
+		self.loopTemp = RepeatedTimer(5, self.checkSecurityTemp)
+		self.loopTemp.start()
 
+	def checkSecurityTemp(self):
+		try:
+			nozzle_temp = self._printer.get_current_temperatures()['tool0']['actual']
+			bed_temp = self._printer.get_current_temperatures()['bed']['actual']
+		except:
+			pass
+		else:	
+			if(nozzle_temp >= int(self._settings.get(['security_nozzle_temp'])) or bed_temp >= int(self._settings.get(['security_bed_temp']))):
+				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
 
 	def get_template_vars(self):
 		return dict(
@@ -220,7 +237,6 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 	def on_event(self, event, payload):
 		if(event == "PrintDone"):
 			if(self._settings.get(['auto_off']) == True):
-				import time
 				while(True):
 					if(self._printer.get_current_temperatures()['tool0']['actual'] <= int(self._settings.get(['auto_off_nozzle_temp'])) and self._printer.get_current_temperatures()['bed']['actual'] <= int(self._settings.get(['auto_off_bed_temp']))):
 						if(self._settings.get(['auto_off_type']) == 'direct'):
@@ -247,6 +263,13 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 							break
 					else:
 						time.sleep(5)
+		elif(event == "EStop"):
+			if(self._settings.get(['security_emergency_stop']) == True):
+				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
+		elif(event == "Disconnected"):
+			if(self._settings.get(['security_connection_lost']) == True):
+				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
+
 
 	##~~ AssetPlugin mixin
 
