@@ -1,68 +1,81 @@
 <a id="ophom_plugsettings" class="pull-right" title="On/Off Printer" style="cursor: pointer;">
 	<font id="ophom_plugbutton" color='grey'>
-	<i class="fa fa-plug"></i>
+	<i class="fa fa-plug fa-spin"></i>
 	</font>
 </a>
 
 <script>
 	var plug_button = document.getElementById("ophom_plugbutton");
 
-	// Vérification du statut actuel de la configuration de Ophom
-	fetch(API_BASEURL + "plugin/ophom?action=isconfigured").then(function(response) {
-		response.json().then(function(data) {
-			if(data.reponse != 2)
-			{
-				plug_button.style.color = "grey"
-				plug_button.addEventListener('click', function(){
-					alert("Ophom is not configured !\nPlease open settings and go in the \"Plugins -> Ophom\" section.");
-				})
-			}
-			else
-			{	
-				// Récupération du statut au lancement de la page
-				checkPlugStatus();
-
-				// Boucle de vérification du statut de la prise
-				var check_plug_status = setInterval(function() {
+	setTimeout(function() {
+		// Vérification du statut actuel de la configuration de Ophom
+		fetch(API_BASEURL + "plugin/ophom?action=isconfigured").then(function(response) {
+			response.json().then(function(data) {
+				// Bridge not configured
+				plug_button.children[0].classList.remove("fa-spin")
+				if(data.reponse < 2)
+				{
+					plug_button.style.color = "grey"
+					plug_button.addEventListener('click', function(){
+						alert("Ophom is not configured !\nPlease open settings and go in the \"Plugins -> Ophom\" section.");
+					})
+				}
+				// Bridge configured but not found on network
+				else if(data.reponse == 3)
+				{
+					plug_button.style.color = "grey";
+					plug_button.addEventListener('click', function(){
+						alert("Bridge not found !\nPlease open settings and go in the \"Plugins -> Ophom\" section.");
+					})
+				}
+				// Bridge configured and working
+				else if(data.reponse == 2)
+				{	
+					// Récupération du statut au lancement de la page
 					checkPlugStatus();
-				},5000)
 
-				// Envoi de la commande toggle pour allumer ou éteindre la prise
-				document.getElementById("ophom_plugsettings").addEventListener('click', function(){
+					// Boucle de vérification du statut de la prise
+					var check_plug_status = setInterval(function() {
+						checkPlugStatus();
+					},5000)
 
-					fetch(API_BASEURL + "connection").then(function(response) {
-						response.json().then(function(data) {
-							if(data.current.state == "Operational")
-							{
-								toggle();
-							}
-							else if(data.current.state == "Closed")
-							{
-								toggle();
-							}
-							else if(data.current.state == "Printing")
-							{
-								if(plug_button.dataset.status == 1)
+					// Envoi de la commande toggle pour allumer ou éteindre la prise
+					document.getElementById("ophom_plugsettings").addEventListener('click', function(){
+
+						fetch(API_BASEURL + "connection").then(function(response) {
+							response.json().then(function(data) {
+								if(data.current.state == "Operational")
 								{
-									if(confirm("A print is currently running !\nDo you really want turn off the plug ?"))
+									toggle();
+								}
+								else if(data.current.state == "Closed")
+								{
+									toggle();
+								}
+								else if(data.current.state == "Printing")
+								{
+									if(plug_button.dataset.status == 1)
+									{
+										if(confirm("A print is currently running !\nDo you really want turn off the plug ?"))
+										{
+											toggle();
+										}
+									}
+									else
 									{
 										toggle();
 									}
 								}
-								else
-								{
-									toggle();
-								}
-							}
+							})
 						})
-					})
-					
+						
 
-					
-				})
-			}
-		})
-	});
+						
+					})
+				}
+			})
+		});
+	}, 2000);
 
 	function checkPlugStatus()
 	{
