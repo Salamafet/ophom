@@ -76,6 +76,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		return dict(
 			command1=[],
 			pairing=['ip'],
+			changeip=['ip'],
 			configuration=['device_id'],
 			updaterules=['rules']
 		)
@@ -92,9 +93,16 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 				token = r.json()[0]['success']['username']
 				self._settings.set(['hue_token'], token)
 				self._settings.set(['hue_ip'], ip)
+				self._settings.save()
 				return flask.jsonify(reponse="success")
+		elif command == "changeip":
+			ip = data['ip']
+			self._settings.set(['hue_ip'], ip)
+			self._settings.save()
+			return flask.jsonify(reponse="success")
 		elif command == "configuration":
 			self._settings.set(['light_id'], data['device_id'])
+			self._settings.save()
 			return flask.jsonify(reponse="success")
 		elif command == "updaterules":
 			# Fetch actual rules to get the id of the old one
@@ -174,7 +182,12 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			elif(token != None and light == None):
 				return flask.jsonify(reponse=1)
 			elif(token != None and light != None):
-				return flask.jsonify(reponse=2)
+				try:
+					r = requests.get("http://{}/api/{}/lights/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), timeout=3)
+				except:
+					return flask.jsonify(reponse=3)
+				else:
+					return flask.jsonify(reponse=2)
 		elif(option == "checkplugstatus"):
 			r = requests.get("http://{}/api/{}/lights/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])))
 			if(r.json()['state']['on']):

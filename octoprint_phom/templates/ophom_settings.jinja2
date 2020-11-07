@@ -24,6 +24,20 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	</div>
 </div>
 
+<!-- ###### BRIDGE RE FIND ###### -->
+<div id="ophom_bridgeunreachable" style="display: none;">
+	<h4>Looking for the Bridge</h4>
+	<p>Click on the button below to start searching for your Philips Hue Bridge</p>
+	<button id="ophom_researchbridgebutton" type="button" class="btn"><i class="fa fa-search"></i> Search my bridge</button>
+	<br /><br />
+	<span id="ophom_researchbridgestatus" style="display: none;"></span>
+	<br />
+	<div id="ophom_bridgerefound" style="display: none;">
+		<br />
+		<button id="ophom_researchbridgesave" type="button" class="btn"><i class="fa fa-save"></i> Apply new IP</button>
+	</div>
+</div>
+
  <!-- ###### BRIDGE CONFIGURATION ###### -->
 <div id="ophom_bridgenotconfigured" style="display: none;">
 	<h4>Bridge Configuration</h4>
@@ -48,8 +62,6 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	
 	<br />
 	<button id="ophom_validplugselection" class="btn"><i class="fa fa-save"></i> Save Configuration</button>
-
-
 </div>
 
 <!-- #### AUTO OFF CONFIGURATION ####-->
@@ -260,6 +272,9 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 			else if (data['reponse'] == 2) {
 				autOffConfiguration();
 			}
+			else if(data['reponse'] == 3) {
+				refindBridge();
+			}
 		})
 	});
 
@@ -376,6 +391,60 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 				});
 		}
 	});
+
+	function refindBridge()
+	{
+		general_status.innerHTML = "Bridge configured but unreachable";
+		general_status.style.backgroundColor = "rgb(17, 99, 255)";
+		document.getElementById("ophom_bridgenotlinked").style.display = "none";
+		document.getElementById("ophom_bridgenotconfigured").style.display = "none";
+		document.getElementById("ophom_bridgeunreachable").style.display = "";
+
+		document.getElementById("ophom_researchbridgebutton").addEventListener('click', function() {
+			var search_button = this
+			search_button.innerHTML = '<i class="fa fa-search"></i> Searching...';
+			search_button.disabled = true;
+			document.getElementById("ophom_researchbridgestatus").style.display = "none";
+			document.getElementById("ophom_bridgerefound").style.display = "none";
+
+			fetch(API_BASEURL + "plugin/ophom?action=discover").then(function(response) {
+				response.json().then(function(data) {
+					console.log(data);
+					if(data.length == 0)
+					{
+						search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
+						search_button.disabled = false;
+						document.getElementById("ophom_researchbridgestatus").style.display = "";
+						document.getElementById("ophom_researchbridgestatus").innerHTML = "<font color='red'>Unable to find your Hue Bridge. Are you on the same network ?</font>";
+					}
+					else
+					{
+						bridge_ip_address = data[0].internalipaddress;
+						search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
+						search_button.disabled = false;
+						document.getElementById("ophom_researchbridgestatus").style.display = "";
+						document.getElementById("ophom_researchbridgestatus").innerHTML = "<font color='green'>Brige found (<i>"+ data[0].internalipaddress+"</i>) !</font>";
+						document.getElementById("ophom_bridgerefound").style.display = "";
+					}
+				});
+			});
+		});
+
+		document.getElementById("ophom_researchbridgesave").addEventListener('click', function() {
+			fetch(API_BASEURL + "plugin/ophom", {
+				method: "POST",
+				body : JSON.stringify({command: "changeip", ip: bridge_ip_address}),
+				headers: { 'Content-Type': 'application/json'}
+			}).then(function(response) {
+				response.json().then(function(data) {
+					if(data.reponse == "success")
+					{
+						document.location.reload(true);
+					}
+				});
+			})
+		})
+	}
 
 	function autOffConfiguration()
 	{
