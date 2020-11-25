@@ -53,7 +53,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			bed_temp = self._printer.get_current_temperatures()['bed']['actual']
 		except:
 			pass
-		else:	
+		else:
 			if(nozzle_temp >= int(self._settings.get(['security_nozzle_temp'])) or bed_temp >= int(self._settings.get(['security_bed_temp']))):
 				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
 
@@ -161,7 +161,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 					],
 					"actions": actions
 				}
-				
+
 				requests.post("http://{}/api/{}/rules".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])), json=data_request)
 
 			return flask.jsonify(reponse="success")
@@ -207,7 +207,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		elif(option == "toggle"):
 			r = requests.get("http://{}/api/{}/lights/{}".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])))
 			if(r.json()['state']['on']):
-				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
+				self.turn_off()
 				return flask.jsonify(reponse=0)
 			else:
 				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": True})
@@ -234,7 +234,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 						action_lamp = action['body']['on']
 						liste_regle_on.append({"id": id_lamp, "action": action_lamp})
 					liste_regle['on'] = liste_regle_on
-				
+
 				if(request_liste_regle[regle]['name'] == "#ophom_off"):
 					for action in request_liste_regle[regle]['actions']:
 						id_lamp = re.search(r"\/lights\/(\d)\/state", action['address']).group(1)
@@ -246,34 +246,14 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		else:
 			return flask.jsonify(error="Invalid command")
 
-	### Extinction automatique 
+	### Extinction automatique
 	def on_event(self, event, payload):
 		if(event == "PrintDone"):
 			if(self._settings.get(['auto_off']) == True):
 				while(True):
 					if(self._printer.get_current_temperatures()['tool0']['actual'] <= int(self._settings.get(['auto_off_nozzle_temp'])) and self._printer.get_current_temperatures()['bed']['actual'] <= int(self._settings.get(['auto_off_bed_temp']))):
-						if(self._settings.get(['auto_off_type']) == 'direct'):
-							requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
-							break
-						elif(self._settings.get(['auto_off_type']) == 'delayed'):
-							address = "/api/{}/lights/{}/state".format(self._settings.get(['hue_token']), self._settings.get(['light_id']))
-							data = {
-								"name": "Power Off Printer",
-								"description": "Automatic shutdown initiate by OctoPrint",
-								"command": {
-									"address": address,
-									"body": {
-										"on": False
-									},
-									"method": "PUT"
-								},
-								"time": "PT00:02:00"
-							}
-							requests.post("http://{}/api/{}/schedules/".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])), json=data)
-							import os
-							shutdown_command = self._settings.global_get(["server", "commands", "systemShutdownCommand"])
-							os.system(shutdown_command)
-							break
+							if self.turn_off():
+								break
 					else:
 						time.sleep(5)
 		elif(event == "EStop"):
@@ -282,6 +262,37 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		elif(event == "Disconnected"):
 			if(self._settings.get(['security_connection_lost']) == True):
 				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
+		elif(event == "Shutdown"):
+			if(self._settings.get(['auto_off']) == True):
+				self._turn_off():
+
+
+	def turn_off(self):
+		# central function with the turn off implementation
+		turned_off = False
+		if(self._settings.get(['auto_off_type']) == 'direct'):
+			requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
+			turned_off = True
+		elif(self._settings.get(['auto_off_type']) == 'delayed'):
+			address = "/api/{}/lights/{}/state".format(self._settings.get(['hue_token']), self._settings.get(['light_id']))
+			data = {
+				"name": "Power Off Printer",
+				"description": "Automatic shutdown initiate by OctoPrint",
+				"command": {
+					"address": address,
+					"body": {
+						"on": False
+					},
+					"method": "PUT"
+				},
+				"time": "PT00:02:00"
+			}
+			requests.post("http://{}/api/{}/schedules/".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])), json=data)
+			import os
+			shutdown_command = self._settings.global_get(["server", "commands", "systemShutdownCommand"])
+			os.system(shutdown_command)
+			turned_off = True
+		return turned_off
 
 
 	##~~ AssetPlugin mixin
