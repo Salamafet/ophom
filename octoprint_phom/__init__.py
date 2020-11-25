@@ -264,7 +264,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
 		elif(event == "Shutdown"):
 			if(self._settings.get(['auto_off']) == True):
-				self._turn_off():
+				self.turn_off()
 
 
 	def turn_off(self):
