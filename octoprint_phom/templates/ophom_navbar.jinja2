@@ -126,7 +126,7 @@
 							body : JSON.stringify({command: "connect"}),
 							headers: { 'Content-Type': 'application/json'}
 						});
-					}, 5000)
+					}, Number(data.plugins.ophom.auto_connect_time) * 1000)
 				}
 			})
 		})
