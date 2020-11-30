@@ -70,8 +70,20 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 	<label class="checkbox" disabled>
 		<input type="checkbox" value="" data-bind="checked: settings.plugins.ophom.auto_connect">
-		Try to connect to printer after power On the plug ? (~5sec)
+		Try to connect to printer after power On the plug ?
 	</label>
+
+	<table>
+		<tr>
+			<td>Time to wait before auto connect: </td>
+			<td>
+				<div class="input-append">
+					<input class="span3 controls" id="auto_connect_time" type="text" data-bind="value: settings.plugins.ophom.auto_connect_time">
+					<span class="add-on">sec</span>
+				</div>
+			</td>
+		</tr>
+	</table>
 
 	<br />
 

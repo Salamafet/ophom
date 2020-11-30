@@ -35,6 +35,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			auto_off_bed_temp = 60,
 			auto_off_nozzle_temp = 50,
 			auto_connect = False,
+			auto_connect_time = 5,
 			security_connection_lost = False,
 			security_emergency_stop = True,
 			security_nozzle_temp = 250,
@@ -62,7 +63,8 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			auto_off=self._settings.get(["auto_off"]),
 			auto_off_bed_temp=self._settings.get(["auto_off_bed_temp"]),
 			auto_off_nozzle_temp=self._settings.get(["auto_off_nozzle_temp"]),
-			auto_connect=self._settings.get(['auto_connect'])
+			auto_connect=self._settings.get(['auto_connect']),
+			auto_connect_time=self._settings.get(['auto_connect_time'])
 		)
 
 	def get_template_configs(self):
