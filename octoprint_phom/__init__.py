@@ -272,6 +272,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 	def turn_off(self):
 		# central function with the turn off implementation
 		turned_off = False
+		self._printer.disconnect()
 		if(self._settings.get(['auto_off_type']) == 'direct'):
 			requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
 			turned_off = True
