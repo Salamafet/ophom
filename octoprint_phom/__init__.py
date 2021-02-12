@@ -265,8 +265,11 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			if(self._settings.get(['security_connection_lost']) == True):
 				requests.put("http://{}/api/{}/lights/{}/state".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token']), self._settings.get(['light_id'])), json={"on": False})
 		elif(event == "Shutdown"):
-			if(self._settings.get(['auto_off']) == True):
-				self.turn_off()
+			# The plugin doesn't know if it concerns a octoprint restart, system reboot or a system shutdown. Only a shutdown should be performed on the last one.
+			# As long as that is unknown disable code below:
+			# if(self._settings.get(['auto_off']) == True):
+			# 	self.turn_off()
+			pass
 
 
 	def turn_off(self):
