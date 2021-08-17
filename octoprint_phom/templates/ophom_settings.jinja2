@@ -299,13 +299,32 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 		fetch(API_BASEURL + "plugin/ophom?action=discover").then(function(response) {
 			response.json().then(function(data) {
-				console.log(data);
 				if(data.length == 0)
 				{
 					search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
 					search_button.disabled = false;
 					document.getElementById("ophom_searchbridgestatus").style.display = "";
 					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='red'>Unable to find your Hue Bridge. Are you on the same network ?</font>";
+				}
+				else if(data.length > 1)
+				{
+					search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
+					search_button.disabled = false;
+					document.getElementById("ophom_searchbridgestatus").style.display = "";
+					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='blue'>Multiple bridges founds !</font><br />Select the correct bridge in the list below:<br />";
+					var select = document.createElement("select");
+					select.addEventListener("change", function() {
+						bridge_ip_address = select.value
+					})
+					document.getElementById("ophom_searchbridgestatus").appendChild(select);
+
+					data.forEach(element => {
+						var option = document.createElement("option");
+						option.value = element.internalipaddress;
+						option.text = element.internalipaddress;
+						select.appendChild(option);
+					})
+					document.getElementById("ophom_bridgefound").style.display = "";
 				}
 				else
 				{
@@ -421,13 +440,32 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 
 			fetch(API_BASEURL + "plugin/ophom?action=discover").then(function(response) {
 				response.json().then(function(data) {
-					console.log(data);
 					if(data.length == 0)
 					{
 						search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
 						search_button.disabled = false;
 						document.getElementById("ophom_researchbridgestatus").style.display = "";
 						document.getElementById("ophom_researchbridgestatus").innerHTML = "<font color='red'>Unable to find your Hue Bridge. Are you on the same network ?</font>";
+					}
+					else if(data.length > 1)
+					{
+						search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
+						search_button.disabled = false;
+						document.getElementById("ophom_researchbridgestatus").style.display = "";
+						document.getElementById("ophom_researchbridgestatus").innerHTML = "<font color='blue'>Multiple bridges founds !</font><br />Select the correct bridge in the list below:<br />";
+						var select = document.createElement("select");
+						select.addEventListener("change", function() {
+							bridge_ip_address = select.value
+						})
+						document.getElementById("ophom_researchbridgestatus").appendChild(select);
+
+						data.forEach(element => {
+							var option = document.createElement("option");
+							option.value = element.internalipaddress;
+							option.text = element.internalipaddress;
+							select.appendChild(option);
+						})
+						document.getElementById("ophom_bridgerefound").style.display = "";
 					}
 					else
 					{
