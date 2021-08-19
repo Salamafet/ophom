@@ -174,8 +174,14 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 	def on_api_get(self, request):
 		option = request.args.get('action')
 		if(option == "discover"):
+			final_discover = []
 			r = requests.get("https://discovery.meethue.com/")
-			return flask.jsonify(r.json())
+			r_2 = requests.get("https://phoscon.de/discover")
+			for element in r.json():
+				final_discover.append(element)
+			for element in r_2.json():
+				final_discover.append(element)
+			return flask.jsonify(final_discover)
 		elif(option == "isconfigured"):
 			token = self._settings.get(['hue_token'])
 			light = self._settings.get(['light_id'])
