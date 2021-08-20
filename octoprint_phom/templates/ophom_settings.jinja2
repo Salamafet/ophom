@@ -319,20 +319,28 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 					document.getElementById("ophom_searchbridgestatus").appendChild(select);
 
 					data.forEach(element => {
+						if(element.internalport == undefined)
+						{
+							element.internalport = 80;
+						}
 						var option = document.createElement("option");
-						option.value = element.internalipaddress;
-						option.text = element.internalipaddress;
+						option.value = element.internalipaddress + ":" + element.internalport;
+						option.text = element.internalipaddress + ":" + element.internalport;
 						select.appendChild(option);
 					})
 					document.getElementById("ophom_bridgefound").style.display = "";
 				}
 				else
 				{
-					bridge_ip_address = data[0].internalipaddress;
+					if(data[0].internalport == undefined)
+					{
+						data[0].internalport = 80;
+					}
+					bridge_ip_address = data[0].internalipaddress + ":" + data[0].internalport;
 					search_button.innerHTML = '<i class="fa fa-search"></i> Search my bridge';
 					search_button.disabled = false;
 					document.getElementById("ophom_searchbridgestatus").style.display = "";
-					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='green'>Brige found (<i>"+ data[0].internalipaddress+"</i>) !</font>";
+					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='green'>Brige found (<i>"+ data[0].internalipaddress+ ":" + data[0].internalport + "</i>) !</font>";
 					document.getElementById("ophom_bridgefound").style.display = "";
 				}
 			});
