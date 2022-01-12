@@ -36,6 +36,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			auto_off_nozzle_temp = 50,
 			auto_connect = False,
 			auto_connect_time = 5,
+			auto_off_delay = 2,
 			security_connection_lost = False,
 			security_emergency_stop = True,
 			security_nozzle_temp = 250,
@@ -254,7 +255,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 		else:
 			return flask.jsonify(error="Invalid command")
 
-	### Extinction automatique
+	### Auto shutdown
 	def on_event(self, event, payload):
 		if(event == "PrintDone"):
 			if(self._settings.get(['auto_off']) == True):
@@ -287,6 +288,10 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 			turned_off = True
 		elif(self._settings.get(['auto_off_type']) == 'delayed'):
 			address = "/api/{}/lights/{}/state".format(self._settings.get(['hue_token']), self._settings.get(['light_id']))
+			if(len(self._settings.get(['auto_off_delay'])) == 1):
+				time = f"PT00:0{self._settings.get(['auto_off_delay'])}:00"
+			elif(len(self._settings.get(['auto_off_delay'])) == 2):
+				time = f"PT00:{self._settings.get(['auto_off_delay'])}:00"
 			data = {
 				"name": "Power Off Printer",
 				"description": "Automatic shutdown initiate by OctoPrint",
@@ -297,7 +302,7 @@ class OphomPlugin(octoprint.plugin.SettingsPlugin,
 					},
 					"method": "PUT"
 				},
-				"time": "PT00:02:00"
+				"time": time
 			}
 			requests.post("http://{}/api/{}/schedules/".format(self._settings.get(['hue_ip']), self._settings.get(['hue_token'])), json=data)
 			import os

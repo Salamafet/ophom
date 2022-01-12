@@ -127,7 +127,18 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		<label class="radio">
 			<input type="radio" name="optionsRadios" id="optionsRadios2" value="delayed" data-bind="checked: settings.plugins.ophom.auto_off_type">
 			Delayed power off with system shutdown
-			<small><font class="text-info">Usefull if you have a Raspberry Pi powered to printer PSU</font><br />This option will create a power off task on the bridge (2 minutes later) and Shutdown the system (the command must be defined in Settings -> Server)</small>
+			<small><font class="text-info">Usefull if you have a Raspberry Pi powered to printer PSU</font><br />This option will create a power off task on the bridge and Shutdown the system (the command must be defined in Settings -> Server)</small>
+			<table>
+				<tr>
+					<td>Delay before shutdown: </td>
+					<td>
+						<div class="input-append">
+							<input class="form-control form-control-sm col-xs-1" id="auto_off_delay" type="number" data-bind="value: settings.plugins.ophom.auto_off_delay" style="width: 40px;">
+							<span class="add-on">minutes</span>
+						</div>
+					</td>
+				</tr>
+			</table>
 		</label>
 	</div>
 
