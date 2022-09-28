@@ -324,6 +324,12 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 					document.getElementById("ophom_searchbridgestatus").style.display = "";
 					document.getElementById("ophom_searchbridgestatus").innerHTML = "<font color='blue'>Multiple bridges founds !</font><br />Select the correct bridge in the list below:<br />";
 					var select = document.createElement("select");
+
+					var option = document.createElement("option");
+					option.value = "select"
+					option.text = "Select your bridge..."
+					select.appendChild(option);
+
 					select.addEventListener("change", function() {
 						bridge_ip_address = select.value
 					})
@@ -359,6 +365,11 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 	});
 
 	document.getElementById("ophom_pairingbridgebutton").addEventListener('click', function() {
+		// If nothing selected, do nothing
+		if(bridge_ip_address == "select" || bridge_ip_address == "")
+		{
+			return
+		}
 		var pairing_bridge_button= document.getElementById("ophom_pairingbridgebutton");
 		pairing_bridge_button.innerHTML = '<i class="fa fa-link"></i> Pairing...';
 		pairing_bridge_button.disabled = true;
@@ -369,21 +380,23 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		var interval_pairing = setInterval(function() {
 			pairing_try_count += 1;
 			text_pairing_count.innerHTML = "Try count: " + pairing_try_count + "/30";
-			fetch(API_BASEURL + "plugin/ophom", {
-				method: "POST",
-				body : JSON.stringify({command: "pairing", ip: bridge_ip_address}),
-				headers: { 'Content-Type': 'application/json'}
-			}).then(function(response) {
-				response.json().then(function(data) {
-					console.info(data.reponse);
-					if(data.reponse == "success")
-					{
-						clearInterval(interval_pairing);
-						text_pairing_count.innerHTML = "<font color='green'>Succesfull Pairing !</font>";
-						bridgeConfiguration();
-					}
-				});
-			});
+
+			$.ajax({
+				type: 'POST',
+				url: API_BASEURL + "plugin/ophom",
+				contentType: "application/json",
+				data: JSON.stringify({command: "pairing", ip: bridge_ip_address}),
+				dataType: 'json',
+			}).done(function(data) {
+				console.info(data.reponse);
+				if(data.reponse == "success")
+				{
+					clearInterval(interval_pairing);
+					text_pairing_count.innerHTML = "<font color='green'>Succesfull Pairing !</font>";
+					bridgeConfiguration();
+				}
+			})
+
 			if(pairing_try_count == 30)
 			{
 				clearInterval(interval_pairing);
@@ -427,18 +440,18 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		var light_id = document.getElementById("ophom_plugselection").value;
 		if(light_id != "")
 		{
-			fetch(API_BASEURL + "plugin/ophom", {
-					method: "POST",
-					body : JSON.stringify({command: "configuration", device_id: light_id}),
-					headers: { 'Content-Type': 'application/json'}
-				}).then(function(response) {
-					response.json().then(function(data) {
-						if(data.reponse == "success")
-						{
-							autOffConfiguration();
-						}
-					});
-				});
+			$.ajax({
+				type: 'POST',
+				url: API_BASEURL + "plugin/ophom",
+				contentType: "application/json",
+				data: JSON.stringify({command: "configuration", device_id: light_id}),
+				dataType: 'json',
+			}).done(function(data) {
+				if(data.reponse == "success")
+				{
+					autOffConfiguration();
+				}
+			})
 		}
 	});
 
@@ -500,17 +513,17 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 		});
 
 		document.getElementById("ophom_researchbridgesave").addEventListener('click', function() {
-			fetch(API_BASEURL + "plugin/ophom", {
-				method: "POST",
-				body : JSON.stringify({command: "changeip", ip: bridge_ip_address}),
-				headers: { 'Content-Type': 'application/json'}
-			}).then(function(response) {
-				response.json().then(function(data) {
-					if(data.reponse == "success")
-					{
-						document.location.reload(true);
-					}
-				});
+			$.ajax({
+				type: 'POST',
+				url: API_BASEURL + "plugin/ophom",
+				contentType: "application/json",
+				data: JSON.stringify({command: "changeip", ip: bridge_ip_address}),
+				dataType: 'json',
+			}).done(function(data) {
+				if(data.reponse == "success")
+				{
+					document.location.reload(true);
+				}
 			})
 		})
 	}
@@ -728,18 +741,18 @@ Hue Bridge Status: <span id="ophom_generalstatus" class="badge badge-danger" sty
 			}
 		}
 
-		fetch(API_BASEURL + "plugin/ophom", {
-					method: "POST",
-					body : JSON.stringify({command: "updaterules", "rules": rules}),
-					headers: { 'Content-Type': 'application/json'}
-				}).then(function(response) {
-					response.json().then(function(data) {
-						if(data.reponse == "success")
-						{
-							loadHueRules();
-						}
-					});
-				});
+		$.ajax({
+			type: 'POST',
+			url: API_BASEURL + "plugin/ophom",
+			contentType: "application/json",
+			data: JSON.stringify({command: "updaterules", "rules": rules}),
+			dataType: 'json',
+		}).done(function(data) {
+			if(data.reponse == "success")
+			{
+				loadHueRules();
+			}
+		})
 	}
 
 </script>

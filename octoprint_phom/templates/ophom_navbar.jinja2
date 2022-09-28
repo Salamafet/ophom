@@ -121,11 +121,18 @@
 				if(data.plugins.ophom.auto_connect == true)
 				{
 					setTimeout(function() {
-						fetch(API_BASEURL + "connection", {
-							method: "POST",
-							body : JSON.stringify({command: "connect"}),
-							headers: { 'Content-Type': 'application/json'}
-						});
+						$.ajax({
+							type: 'POST',
+							url: API_BASEURL + "connection",
+							contentType: "application/json",
+							data: JSON.stringify({command: "connect"}),
+							dataType: 'json',
+						})
+						// fetch(API_BASEURL + "connection", {
+						// 	method: "POST",
+						// 	body : JSON.stringify({command: "connect"}),
+						// 	headers: { 'Content-Type': 'application/json'}
+						// });
 					}, Number(data.plugins.ophom.auto_connect_time) * 1000)
 				}
 			})
