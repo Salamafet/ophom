@@ -7,4 +7,6 @@ assignees: ''
 
 ---
 
-### ⚠️⚠️⚠️ Ophom is designed to control sockets, not lights. Please take this into consideration before posting your issue.
+# ⚠️⚠️⚠️ Ophom is designed to control sockets, not lights. Please take this into consideration before posting your issue.
+
+### As I haven't used 3D printers for several years (and therefore OctoPrint), it may take me a while to reply.
